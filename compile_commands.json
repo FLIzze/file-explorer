@@ -1,0 +1,13 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "main.c"
+    ],
+    "directory": "/home/abel/Documents/file-explorer",
+    "file": "/home/abel/Documents/file-explorer/main.c"
+  }
+]
