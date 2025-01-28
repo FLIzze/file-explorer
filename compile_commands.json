@@ -5,9 +5,13 @@
       "-c",
       "-I/usr/include/SDL2",
       "-D_REENTRANT",
-      "main.c"
+      "-Iheader",
+      "-o",
+      "build/main.o",
+      "src/main.c"
     ],
     "directory": "/home/abel/Documents/file-explorer",
-    "file": "/home/abel/Documents/file-explorer/main.c"
+    "file": "/home/abel/Documents/file-explorer/src/main.c",
+    "output": "/home/abel/Documents/file-explorer/build/main.o"
   }
 ]
