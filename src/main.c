@@ -52,22 +52,18 @@ int main(int argc, char *argv[]) {
     term->total_line = 1;
     strcpy(term->path, "/");
 
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+    SDL_RenderClear(renderer);
+    display_files(renderer, font, term, cursor);
+    display_path(term, font, renderer);
+    display_cursor(renderer, cursor);
+    /* display_lines(renderer, font, term); */
+    SDL_RenderPresent(renderer);
+
     SDL_Event e;
     int quit = 0;
     while (!quit) {
-        handle_events(!quit, e, cursor, term);
-
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
-
-        SDL_RenderClear(renderer);
-
-        display_files(renderer, font, term, cursor);
-        display_cursor(renderer, cursor);
-        display_lines(renderer, font, term);
-        display_path(term, font, renderer);
-        /* display_file_content(renderer, font, term); */
-
-        SDL_RenderPresent(renderer);
+        handle_events(&quit, e, cursor, term, renderer, font);
     }
 
     free(term);

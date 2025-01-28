@@ -6,9 +6,7 @@ void display_cursor(SDL_Renderer *renderer, struct cursor *cursor) {
     int alpha = (int)(cursor->opacity * 255);
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-
     SDL_SetRenderDrawColor(renderer, cursor->color.red, cursor->color.green, cursor->color.blue, alpha);
-
     SDL_Rect rect = {cursor->x, cursor->y - cursor->padding / 2, WINDOW_WIDTH, FONT_SIZE + cursor->padding }; 
     SDL_RenderFillRect(renderer, &rect);
 }
@@ -46,7 +44,7 @@ void display_files(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term
         strcpy(text, entry->d_name);
 
         char fullpath[1024];
-        snprintf(fullpath, sizeof(fullpath), "%s/%s", term->path, entry->d_name);  
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", term->path, entry->d_name);
 
         struct stat fileStat;
         if (stat(fullpath, &fileStat) == -1) {
@@ -102,8 +100,8 @@ void display_lines(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term
     SDL_Color textColor = { 0, 0, 0 };
 
     for (int i = 0; i < sizeof(term->files) / sizeof(term->files[0]); i++) {
-        char line_number[5];
-        sprintf(line_number, "%d", i);
+        char line_number[20];
+        snprintf(line_number, sizeof(line_number), "%d", i - term->current_line);
         SDL_Surface *textSurface = TTF_RenderText_Shaded(font, line_number, textColor, (SDL_Color){ 255, 255, 255 }); 
         SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
@@ -111,6 +109,7 @@ void display_lines(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term
         SDL_QueryTexture(textTexture, NULL, NULL, &textLocation.w, &textLocation.h);
         SDL_RenderCopy(renderer, textTexture, NULL, &textLocation);
         SDL_DestroyTexture(textTexture);
+        SDL_FreeSurface(textSurface);
     }
 }
 
@@ -118,20 +117,43 @@ void display_file_content(SDL_Renderer *renderer, TTF_Font *font, struct termina
     FILE *file = fopen(term->path, "r");
 
     if (file == NULL) {
-        printf("Could not open directory %s\n", term->path);
+        printf("Could not open file %s\n", term->path);
         return;
     }
 
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    char *file_content = (char *)malloc(file_size + 1);
-    if (file_content == NULL) {
-        printf("Memory allocation failed\n");
+    struct stat file_stat;
+    if (fstat(fileno(file), &file_stat) == -1) {
+        perror("fstat");
         fclose(file);
         return;
     }
 
-    printf("%d", *file_content);
+    long file_size = file_stat.st_size;
+}
+
+void display(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term, struct cursor *cursor) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+    SDL_RenderClear(renderer);
+
+    struct dirent *entry;
+
+    struct stat fileStat;
+    if (stat(term->path, &fileStat) == -1) {
+        perror("stat");
+    }
+
+    const char *type = S_ISDIR(fileStat.st_mode) ? "DIR" : "FILE";
+
+    printf("%s\n", term->path);
+    printf("%d\n", strcmp(type, "DIR"));
+
+    if (strcmp(type, "DIR") == 0) {
+        display_files(renderer, font, term, cursor);
+    } else {
+        display_file_content(renderer, font, term);
+    }
+
+    display_cursor(renderer, cursor);
+    display_path(term, font, renderer);
+    SDL_RenderPresent(renderer);
 }
