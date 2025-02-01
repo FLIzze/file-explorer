@@ -27,9 +27,7 @@ struct cursor {
 struct terminal {
     int current_line;
     int total_line;
-    int current_column;
     int scroll;
-    int offset;
     char *path;
     char *content[2000];
 };

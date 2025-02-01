@@ -52,7 +52,6 @@ int main(int argc, char *argv[]) {
     term->current_line = 1;
     term->total_line = 1;
     term->scroll = 0;
-    term->offset = 0;
     term->path = strdup("/home/abel/Documents/ray-tracing/src/map.cpp");
 
     if (term->path == NULL) {
@@ -63,7 +62,7 @@ int main(int argc, char *argv[]) {
         term->content[i] = NULL;
     }
 
-    read_file(term);
+    read_file(term, cursor);
     display(renderer, font, term, cursor);
 
     SDL_Event e;

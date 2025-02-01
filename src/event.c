@@ -34,6 +34,10 @@ void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
             break;
 
         case SDLK_RETURN: {
+            if (is_file(term->path)) {
+                return;
+            }
+
             char *selected_entry = term->content[term->current_line - 1];
             if (selected_entry == NULL) {
                 fprintf(stderr, "Selected entry is NULL\n");
@@ -49,17 +53,9 @@ void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
             snprintf(new_path, new_path_length, "%s/%s", term->path, selected_entry);
 
             free(term->path);
-
             term->path = new_path;
 
-            term->current_line = 1;
-            term->total_line = 1;
-            term->scroll = 0;
-            term->offset = 0;
-            cursor->y = 0;
-
-            read_file(term);
-
+            read_file(term, cursor);
             display(renderer, font, term, cursor);
             break;
         }
@@ -71,13 +67,9 @@ void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
                     *last_slash = '\0'; 
                 }
             }
-            term->current_line = 1;
-            term->total_line = 1;
-            term->scroll = 0;
-            cursor->y = 0;
-
-            read_file(term);
+            read_file(term, cursor);
             display(renderer, font, term, cursor);
+            printf("displaying");
             break;
 
         default:

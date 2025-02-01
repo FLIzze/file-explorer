@@ -5,7 +5,8 @@
 #include <string.h>
 #include <dirent.h>
 
-void read_file(struct terminal *term) {
+void read_file(struct terminal *term, struct cursor *cursor) {
+    free_content(term, cursor);
     if (is_file(term->path)) {
         read_file_content(term);
     } else {
@@ -35,8 +36,6 @@ void read_file_content(struct terminal *term) {
         return;
     }
 
-    free_content(term);
-
     while ((read = getline(&line, &len, file)) != -1) {
         term->content[index] = strdup(line);
         if (term->content[index] == NULL) {
@@ -57,7 +56,6 @@ void read_directory_content(struct terminal *term) {
     struct dirent *dir;
     d = opendir(term->path);
 
-    free_content(term);
     int index = 0;
 
     if (d) {
@@ -76,11 +74,14 @@ void read_directory_content(struct terminal *term) {
     closedir(d);
 }
 
-void free_content(struct terminal *term) {
-    for (int i = 0; i < term->total_line; i++) {
+void free_content(struct terminal *term, struct cursor *cursor) {
+    for (int i = 0; i < 2000; i++) {
         free(term->content[i]);
         term->content[i] = NULL;
     }
 
-    term->total_line = 0;
+    term->total_line = 1;
+    term->current_line = 1;
+    term->scroll = 0;
+    cursor->y = 0;
 }
