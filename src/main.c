@@ -1,6 +1,7 @@
 #include "struct.h"
 #include "display.h"
 #include "event.h"
+#include "read.h"
 
 int main(int argc, char *argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -50,15 +51,20 @@ int main(int argc, char *argv[]) {
 
     term->current_line = 1;
     term->total_line = 1;
-    strcpy(term->path, "/");
+    term->scroll = 0;
+    term->offset = 0;
+    term->path = strdup("/home/abel/Documents/ray-tracing/src/map.cpp");
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
-    SDL_RenderClear(renderer);
-    display_files(renderer, font, term, cursor);
-    display_path(term, font, renderer);
-    display_cursor(renderer, cursor);
-    /* display_lines(renderer, font, term); */
-    SDL_RenderPresent(renderer);
+    if (term->path == NULL) {
+        printf("Failed to allocate memory for path\n");
+    }
+
+    for (int i = 0; i < 2000; i++) {
+        term->content[i] = NULL;
+    }
+
+    read_file(term);
+    display(renderer, font, term, cursor);
 
     SDL_Event e;
     int quit = 0;

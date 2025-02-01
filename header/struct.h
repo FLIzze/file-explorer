@@ -28,8 +28,14 @@ struct terminal {
     int current_line;
     int total_line;
     int current_column;
-    char path[512];
-    char files[512][512];
+    int scroll;
+    int offset;
+    char *path;
+    char *content[2000];
+};
+
+struct array {
+    unsigned int len;
 };
 
 #endif
