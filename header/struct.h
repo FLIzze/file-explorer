@@ -1,6 +1,8 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
+#include "SDL_stdinc.h"
+
 #define WINDOW_NAME "File Explorer"
 #define WINDOW_WIDTH 1080
 #define WINDOW_HEIGHT 720
@@ -8,12 +10,13 @@
 #define CURSOR_HEIGHT 30
 #define FONT_SIZE 25
 #define FONT_SPACING_Y 5
+#define FONT_SPACING_X 15
 #define LINE_WIDTH 100
 
 struct rgb {
-    int red;
-    int green;
-    int blue;
+    Uint8 red;
+    Uint8 green;
+    Uint8 blue;
 };
 
 struct cursor {
@@ -24,16 +27,26 @@ struct cursor {
     int padding;
 };
 
+struct text_segment {
+    char *text;
+    struct rgb color;
+};
+
+struct line {
+    struct text_segment *segments;
+    int segment_count;
+};
+
 struct terminal {
     int current_line;
     int total_line;
     int scroll;
     char *path;
-    char *content[2000];
+    struct line *lines;
 };
 
-struct array {
-    unsigned int len;
-};
+struct terminal *create_terminal();
+void add_line(struct terminal *term, struct line new_line);
+void free_terminal_content(struct terminal *term);
 
 #endif

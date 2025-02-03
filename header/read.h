@@ -1,9 +1,11 @@
 #ifndef READ_H
 #define READ_H
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include "struct.h"
 
-void read_file(struct terminal *term, struct cursor *cursor);
+void read_file(struct terminal *term, struct cursor *cursor, SDL_Renderer *renderer, TTF_Font *font);
 int is_file(char *path);
 void read_file_content(struct terminal *term);
 void read_directory_content(struct terminal *term);

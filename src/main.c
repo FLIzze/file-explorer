@@ -1,5 +1,4 @@
 #include "struct.h"
-#include "display.h"
 #include "event.h"
 #include "read.h"
 
@@ -36,34 +35,20 @@ int main(int argc, char *argv[]) {
     }
 
     struct cursor *cursor = (struct cursor *)malloc(sizeof(struct cursor));
-    struct terminal *term = (struct terminal *)malloc(sizeof(struct terminal));
+    struct terminal *term = create_terminal();
 
-    if (cursor == NULL || term == NULL) {
-        fprintf(stderr, "Failed to allocate memory for cursor or terminal\n");
+    if (cursor == NULL) {
+        fprintf(stderr, "Failed to allocate memory for cursor\n");
         return -1;
     }
 
     cursor->x = 0;
     cursor->y = 0;
     cursor->color = { 255, 0, 0 };
-    cursor->opacity = 0.2f;
+    cursor->opacity = 0.4f;
     cursor->padding = 5;
 
-    term->current_line = 1;
-    term->total_line = 1;
-    term->scroll = 0;
-    term->path = strdup("/home/abel/Documents/ray-tracing/src/map.cpp");
-
-    if (term->path == NULL) {
-        printf("Failed to allocate memory for path\n");
-    }
-
-    for (int i = 0; i < 2000; i++) {
-        term->content[i] = NULL;
-    }
-
-    read_file(term, cursor);
-    display(renderer, font, term, cursor);
+    read_file(term, cursor, renderer, font);
 
     SDL_Event e;
     int quit = 0;
