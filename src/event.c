@@ -27,10 +27,11 @@ void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
             break;
         case SDLK_a:
             add_file(term, cursor);
+            add_directory(term, cursor);
             read_file(term, cursor, renderer, font);
             break;
         case SDLK_x:
-            delete_file(term, cursor);
+            delete_content(term, cursor);
             read_file(term, cursor, renderer, font);
             break;
         default:
@@ -78,15 +79,12 @@ void goback_directory(struct cursor *cursor, struct terminal *term) {
     }
 
     *last_slash = '\0';
-
     char *new_path = strdup(term->path);
     if (!new_path) {
         fprintf(stderr, "Memory allocation failed!\n");
         return;
     }
-
     *last_slash = '/';
-
 
     free_terminal(term);
     term->path = new_path;

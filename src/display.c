@@ -97,12 +97,16 @@ void display_file_content(SDL_Renderer *renderer, TTF_Font *font, struct termina
     }
 }
 
+int display_confirm(SDL_Renderer *renderer) {
+    return 0;
+}
+
 void display(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term, struct cursor *cursor) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
     SDL_RenderClear(renderer);
     display_file_content(renderer, font, term);
     display_cursor(renderer, cursor);
     display_lines(renderer, font, term);
-    /* display_path(term, font, renderer); */
+    display_path(term, font, renderer);
     SDL_RenderPresent(renderer);
 }

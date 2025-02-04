@@ -16,7 +16,7 @@ struct terminal *create_terminal() {
     term->path = strdup("/");
     if (!term->path) {
         fprintf(stderr, "Memory allocation failed!\n");
-        free(term->path);
+        free(term);
         return NULL;
     }
     term->lines = NULL;
@@ -44,7 +44,7 @@ void free_terminal(struct terminal *term) {
         }
         free(term->lines);
         free(term->path);
-        term->path = NULL;
+        term->path = NULL; 
         term->lines = NULL;
         term->total_line = 0;
         term->scroll = 0;
