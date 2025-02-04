@@ -25,6 +25,14 @@ void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
         case SDLK_b:
             scroll_to(0, cursor, term, 1);
             break;
+        case SDLK_a:
+            add_file(term, cursor);
+            read_file(term, cursor, renderer, font);
+            break;
+        case SDLK_x:
+            delete_file(term, cursor);
+            read_file(term, cursor, renderer, font);
+            break;
         default:
             break;
     }
@@ -58,19 +66,30 @@ void goto_directory(struct cursor *cursor, struct terminal *term) {
     char *new_path = (char *)malloc(new_path_len);
 
     snprintf(new_path, new_path_len, "%s/%s", current_path, selected_file);
-    free_terminal_content(term);
+    free_terminal(term);
     cursor->y = 0;
     term->path = new_path;
 }
 
 void goback_directory(struct cursor *cursor, struct terminal *term) {
-    if (strcmp(term->path, "/") != 0 && strlen(term->path) > 1) {
-        char *last_slash = strrchr(term->path, '/');
-        if (last_slash != NULL && last_slash != term->path) {
-            *last_slash = '\0'; 
-        }
+    char *last_slash = strrchr(term->path, '/');
+    if (!last_slash || last_slash == term->path) {
+        return;
     }
-    free_terminal_content(term);
+
+    *last_slash = '\0';
+
+    char *new_path = strdup(term->path);
+    if (!new_path) {
+        fprintf(stderr, "Memory allocation failed!\n");
+        return;
+    }
+
+    *last_slash = '/';
+
+
+    free_terminal(term);
+    term->path = new_path;
     cursor->y = 0;
 }
 

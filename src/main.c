@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
         handle_events(&quit, e, cursor, term, renderer, font);
     }
 
+    free_terminal(term);
     free(term);
     free(cursor);
 

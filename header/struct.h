@@ -49,6 +49,6 @@ struct terminal {
 
 struct terminal *create_terminal();
 void add_line(struct terminal *term, struct line new_line);
-void free_terminal_content(struct terminal *term);
+void free_terminal(struct terminal *term);
 
 #endif

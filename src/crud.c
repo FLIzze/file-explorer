@@ -1,6 +1,7 @@
 #include "crud.h"
 #include "stdio.h"
 #include "struct.h"
+#include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,16 +26,15 @@ int is_file(char *path) {
 
 void read_file_content(struct terminal *term) {
     FILE *file = fopen(term->path, "r");
+    if (file == NULL) {
+        printf("Could not open file %s\n", term->path);
+        free(file);
+        return;
+    }
 
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
-    unsigned int index = 0;
-
-    if (file == NULL) {
-        printf("Could not open file %s\n", term->path);
-        return;
-    }
 
     while ((read = getline(&line, &len, file)) != -1) {
         struct line new_line;
@@ -43,13 +43,16 @@ void read_file_content(struct terminal *term) {
 
         if (!new_line.segments) {
             fprintf(stderr, "Memory allocation failed!\n");
+            free(file);
+            fclose(file);
             return;
         }
 
         new_line.segments[0].text = strdup(line); 
         if (!new_line.segments[0].text) {
             fprintf(stderr, "Memory allocation failed!\n");
-            free(new_line.segments);
+            free(file);
+            fclose(file);
             return;
         }
 
@@ -81,6 +84,7 @@ void read_directory_content(struct terminal *term) {
 
         if (!new_line.segments) {
             fprintf(stderr, "Memory allocation failed!\n");
+            free(new_line.segments);
             closedir(d);
             return;
         }
@@ -107,9 +111,22 @@ void read_directory_content(struct terminal *term) {
     closedir(d);
 }
 
-
-void add_file(char *path, char *name) {
+void add_file(struct terminal *term, struct cursor *cursor) {
+    FILE *new_file;
+    new_file = fopen("/home/abel/Documents/test.txt", "w");
+    fclose(new_file);
+    free_terminal(term);
+    term->path = strdup("/home/abel/Documents");
+    cursor->y = 0;
 }
 
-void delete_file(char *path) {
+void delete_file(struct terminal *term, struct cursor *cursor) {
+    if (remove("/home/abel/Documents/test.txt") == 0 ) {
+        printf("File deleted\n");
+    } else {
+        perror("Error deleting the file\n");
+    }
+    free_terminal(term);
+    term->path = strdup("/home/abel/Documents");
+    cursor->y = 0;
 }

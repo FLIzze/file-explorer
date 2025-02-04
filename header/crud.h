@@ -10,7 +10,7 @@ int is_file(char *path);
 void read_file_content(struct terminal *term);
 void read_directory_content(struct terminal *term);
 void free_content(struct terminal *term, struct cursor *cursor);
-void add_file(char *path, char *name);
-void delete_file(char *path);
+void add_file(struct terminal *term, struct cursor *cursor);
+void delete_file(struct terminal *term, struct cursor *cursor);
 
 #endif

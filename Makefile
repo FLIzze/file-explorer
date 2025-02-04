@@ -1,6 +1,6 @@
 CC = g++
-CFLAGS = $(shell sdl2-config --cflags) -Iheader   # Add the header directory for includes
-LDFLAGS = $(shell sdl2-config --libs) -lSDL2_ttf
+CFLAGS = $(shell sdl2-config --cflags) -Iheader -fsanitize=address -g
+LDFLAGS = $(shell sdl2-config --libs) -lSDL2_ttf -fsanitize=address
 
 # The source files are now inside the src directory
 SRC = src/main.c src/display.c src/event.c src/struct.c src/crud.c
