@@ -69,6 +69,7 @@ void display_file_content(SDL_Renderer *renderer, TTF_Font *font, struct termina
                 255
             };
 
+            if (strcmp(term->lines[i].segments[j].text, "") == 0) continue;
             SDL_Surface *text_surface = TTF_RenderText_Solid(font, term->lines[i].segments[j].text, text_color);
             if (!text_surface) {
                 fprintf(stderr, "Failed to render text: %s\n", TTF_GetError());
@@ -102,6 +103,6 @@ void display(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term, stru
     display_file_content(renderer, font, term);
     display_cursor(renderer, cursor);
     display_lines(renderer, font, term);
-    display_path(term, font, renderer);
+    /* display_path(term, font, renderer); */
     SDL_RenderPresent(renderer);
 }

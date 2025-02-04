@@ -1,5 +1,5 @@
-#ifndef READ_H
-#define READ_H
+#ifndef CRUD_H
+#define CRUD_H
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -10,5 +10,7 @@ int is_file(char *path);
 void read_file_content(struct terminal *term);
 void read_directory_content(struct terminal *term);
 void free_content(struct terminal *term, struct cursor *cursor);
+void add_file(char *path, char *name);
+void delete_file(char *path);
 
 #endif

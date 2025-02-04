@@ -13,6 +13,8 @@
 #define FONT_SPACING_X 15
 #define LINE_WIDTH 100
 
+#define MAX_VISIBLE_LINE WINDOW_HEIGHT / (FONT_SPACING_Y + FONT_SIZE) 
+
 struct rgb {
     Uint8 red;
     Uint8 green;

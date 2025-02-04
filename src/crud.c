@@ -1,7 +1,6 @@
-#include "read.h"
+#include "crud.h"
 #include "stdio.h"
 #include "struct.h"
-#include "display.h"
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,7 +12,6 @@ void read_file(struct terminal *term, struct cursor *cursor, SDL_Renderer *rende
     } else {
         read_directory_content(term);
     }
-    display(renderer, font, term, cursor);
 }
 
 int is_file(char *path) {
@@ -107,4 +105,11 @@ void read_directory_content(struct terminal *term) {
     }
 
     closedir(d);
+}
+
+
+void add_file(char *path, char *name) {
+}
+
+void delete_file(char *path) {
 }
