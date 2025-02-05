@@ -1,6 +1,7 @@
 #include "crud.h"
 #include "stdio.h"
 #include "struct.h"
+#include "display.h"
 #include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -17,12 +18,12 @@ void read_file(struct terminal *term, struct cursor *cursor, SDL_Renderer *rende
 }
 
 int is_file(char *path) {
-    struct stat fileStat;
-    if (stat(path, &fileStat) == -1) {
+    struct stat file_stat;
+    if (stat(path, &file_stat) == -1) {
         perror("is file : stat");
         return -1;  
     }
-    return S_ISREG(fileStat.st_mode);  
+    return S_ISREG(file_stat.st_mode);  
 }
 
 void read_file_content(struct terminal *term) {
@@ -57,7 +58,7 @@ void read_file_content(struct terminal *term) {
         }
 
         new_line.segments[0].is_cached = 0;
-        new_line.segments[0].color = (struct rgb){0, 0, 0}; 
+        new_line.segments[0].color = (struct rgb){255, 255, 255}; 
         add_line(term, new_line);
     }
 
@@ -101,7 +102,7 @@ void read_directory_content(struct terminal *term) {
         char full_path[512];
         snprintf(full_path, sizeof(full_path), "%s/%s", term->path, dir->d_name);
         if (is_file(full_path)) {
-            new_line.segments[0].color = (struct rgb){0, 0, 0}; 
+            new_line.segments[0].color = (struct rgb){255, 255, 255}; 
         } else {
             new_line.segments[0].color = (struct rgb){0, 0, 255}; 
         }
@@ -161,10 +162,16 @@ void delete_file(char *path) {
     }
 }
 
-void delete_content(struct terminal *term, struct cursor *cursor) {
-    size_t new_path_len = strlen(term->path) + strlen(term->lines[term->current_line].segments[0].text) + 2; 
+int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *renderer, TTF_Font *font) {
+    char *file_name = term->lines[term->current_line].segments[0].text;
+    size_t new_path_len = strlen(term->path) + strlen(file_name) + 2; 
     char *new_path = (char *)malloc(new_path_len);
-    snprintf(new_path, new_path_len, "%s/%s", term->path, term->lines[term->current_line].segments[0].text);
+    snprintf(new_path, new_path_len, "%s/%s", term->path, file_name);
+
+    if (!display_confirm(renderer, font, file_name)) {
+        printf("Aborting\n");
+        return 0;
+    }
 
     if (is_file(new_path)) {
         delete_file(new_path);
@@ -187,4 +194,5 @@ void delete_content(struct terminal *term, struct cursor *cursor) {
     }
     term->scroll = previous_scroll;
     term->path = previous_path;
+    return 1;
 }

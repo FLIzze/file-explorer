@@ -1,3 +1,4 @@
+#include "display.h"
 #include "struct.h"
 #include "event.h"
 #include "crud.h"
@@ -44,11 +45,12 @@ int main(int argc, char *argv[]) {
 
     cursor->x = 0;
     cursor->y = 0;
-    cursor->color = { 255, 0, 0 };
+    cursor->color = { 0, 255, 0 };
     cursor->opacity = 0.4f;
     cursor->padding = 5;
 
     read_file(term, cursor, renderer, font);
+    display(renderer, font, term, cursor);
 
     SDL_Event e;
     int quit = 0;

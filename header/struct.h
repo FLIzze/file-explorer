@@ -33,7 +33,6 @@ struct text_segment {
     char *text;
     struct rgb color;
     SDL_Texture *text_texture;
-    SDL_Surface *text_surface;
     int is_cached;
 };
 

@@ -49,8 +49,6 @@ void free_terminal(struct terminal *term) {
             }
 
             if (segment->is_cached) {
-                SDL_FreeSurface(segment->text_surface);
-                segment->text_surface = NULL;
                 SDL_DestroyTexture(segment->text_texture);
                 segment->text_texture = NULL;
             }

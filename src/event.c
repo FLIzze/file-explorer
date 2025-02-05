@@ -33,8 +33,15 @@ void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
             read_file(term, cursor, renderer, font);
             break;
         case SDLK_x:
-            delete_content(term, cursor);
-            read_file(term, cursor, renderer, font);
+            if (delete_content(term, cursor, renderer, font)) {
+                read_file(term, cursor, renderer, font);
+            }
+            break;
+        case SDLK_d:
+            scroll_to(term->current_line + MAX_VISIBLE_LINE, cursor, term, 0);
+            break;
+        case SDLK_u:
+            scroll_to(term->current_line - MAX_VISIBLE_LINE, cursor, term, 0);
             break;
         default:
             break;
@@ -97,7 +104,14 @@ void goback_directory(struct cursor *cursor, struct terminal *term) {
 }
 
 void scroll_to(int line, struct cursor *cursor, struct terminal *term, int move_cursor) { 
-    if (line < 0 || line >= term->total_line) return;
+    if (line < 0) {
+        cursor->y = 0;
+        term->scroll = 0;
+        term->current_line = 0;
+        return;
+    } else if (line >= term->total_line) {
+        return;
+    }
 
     int previous_line = term->current_line;
     term->current_line = line;
@@ -115,10 +129,6 @@ void scroll_to(int line, struct cursor *cursor, struct terminal *term, int move_
             cursor->y = new_y;
         }
     } else {
-        if (new_y >= WINDOW_HEIGHT) {
-            term->scroll = term->current_line - MAX_VISIBLE_LINE + 1;
-        } else if (new_y < 0) {
-            term->scroll = term->current_line;
-        }
+        term->scroll += term->current_line - previous_line;
     }
 }
