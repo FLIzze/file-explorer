@@ -1,7 +1,7 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
-#include "SDL_stdinc.h"
+#include <SDL.h>
 
 #define WINDOW_NAME "File Explorer"
 #define WINDOW_WIDTH 1080
@@ -32,6 +32,9 @@ struct cursor {
 struct text_segment {
     char *text;
     struct rgb color;
+    SDL_Texture *text_texture;
+    SDL_Surface *text_surface;
+    int is_cached;
 };
 
 struct line {

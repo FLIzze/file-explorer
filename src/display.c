@@ -23,12 +23,18 @@ void display_path(struct terminal *term, TTF_Font *font, SDL_Renderer *renderer)
 }
 
 void display_lines(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term) {
-    SDL_Color textColor = { 0, 255, 255 };
+    SDL_Color textColor = { 255, 0, 0 };
     int position_y = 0;
-    for (int i = 1; i < term->total_line - term->scroll + 1; i++) {
+
+    int start_line = term->scroll;
+    int end_line = term->scroll + MAX_VISIBLE_LINE;
+    end_line = (end_line > term->total_line) ? term->total_line : end_line;
+
+    for (int i = start_line; i < end_line; i++) {
         char line_number[20];
-        snprintf(line_number, sizeof(line_number), "%d", i + term->scroll);
-        SDL_Surface *textSurface = TTF_RenderText_Shaded(font, line_number, textColor, (SDL_Color){ 0, 0, 0 }); 
+        int relative_line_number = (i == term->current_line) ? (i + 1) : abs(i - term->current_line);
+        snprintf(line_number, sizeof(line_number), "%d", relative_line_number);
+        SDL_Surface *textSurface = TTF_RenderText_Shaded(font, line_number, textColor, (SDL_Color){ 255, 255, 255 }); 
         SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
         SDL_Rect textLocation = { 0, position_y, LINE_WIDTH, 0 };
@@ -49,47 +55,50 @@ void display_file_content(SDL_Renderer *renderer, TTF_Font *font, struct termina
     int x = LINE_WIDTH;
     int y = 0;
 
-    for (int i = term->scroll; i < term->total_line; i++) {
+    int start_line = term->scroll;
+    int end_line = term->scroll + MAX_VISIBLE_LINE;
+    end_line = (end_line > term->total_line) ? term->total_line : end_line;
+
+    for (int i = start_line; i < end_line; i++) {
         if (!term->lines[i].segments) continue;
 
         for (int j = 0; j < term->lines[i].segment_count; j++) {
-            if (!term->lines[i].segments[j].text) continue;
+            struct text_segment *segment = &term->lines[i].segments[j];
+            if (!segment->text) continue;
 
-            char *segment_text = term->lines[i].segments[j].text;
-            for (int k = 0; segment_text[k] != '\0'; k++) {
-                if (segment_text[k] == '\n') {
-                    segment_text[k] = '\0';  
-                }
-            }
+            SDL_Color bg_color;
+            SDL_Color text_color; 
 
-            SDL_Color text_color = {
-                term->lines[i].segments[j].color.red,
-                term->lines[i].segments[j].color.green,
-                term->lines[i].segments[j].color.blue,
+            text_color = {
+                segment->color.red,
+                segment->color.green,
+                segment->color.blue,
                 255
             };
+            bg_color = { 255, 255, 255, 255 };
 
-            if (strcmp(term->lines[i].segments[j].text, "") == 0) continue;
-            SDL_Surface *text_surface = TTF_RenderText_Solid(font, term->lines[i].segments[j].text, text_color);
-            if (!text_surface) {
-                fprintf(stderr, "Failed to render text: %s\n", TTF_GetError());
-                continue;
+            if (strcmp(segment->text, "") == 0) continue;
+
+            if (!segment->is_cached) {
+                segment->text_surface = TTF_RenderText_Shaded(font, segment->text, text_color, bg_color);
+                if (!segment->text_surface) {
+                    fprintf(stderr, "Failed to render text: %s\n", TTF_GetError());
+                    continue;
+                }
+
+                segment->text_texture = SDL_CreateTextureFromSurface(renderer, segment->text_surface);
+                if (!segment->text_texture) {
+                    fprintf(stderr, "Failed to create texture: %s\n", SDL_GetError());
+                    SDL_FreeSurface(segment->text_surface);
+                    continue;
+                }
+                segment->is_cached = 1;
             }
 
-            SDL_Texture *text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-            if (!text_texture) {
-                fprintf(stderr, "Failed to create texture: %s\n", SDL_GetError());
-                SDL_FreeSurface(text_surface);
-                continue;
-            }
+            SDL_Rect dest_rect = { x, y, segment->text_surface->w, segment->text_surface->h };
+            SDL_RenderCopy(renderer, segment->text_texture, NULL, &dest_rect);
 
-            SDL_Rect dest_rect = { x, y, text_surface->w, text_surface->h };
-            SDL_RenderCopy(renderer, text_texture, NULL, &dest_rect);
-
-            x += text_surface->w + FONT_SPACING_X;
-
-            SDL_FreeSurface(text_surface);
-            SDL_DestroyTexture(text_texture);
+            x += segment->text_surface->w + FONT_SPACING_X;
         }
 
         x = LINE_WIDTH;
@@ -97,16 +106,12 @@ void display_file_content(SDL_Renderer *renderer, TTF_Font *font, struct termina
     }
 }
 
-int display_confirm(SDL_Renderer *renderer) {
-    return 0;
-}
-
 void display(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term, struct cursor *cursor) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
     SDL_RenderClear(renderer);
     display_file_content(renderer, font, term);
-    display_cursor(renderer, cursor);
     display_lines(renderer, font, term);
-    display_path(term, font, renderer);
+    display_cursor(renderer, cursor);
+    /* display_path(term, font, renderer); */
     SDL_RenderPresent(renderer);
 }

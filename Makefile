@@ -1,27 +1,32 @@
 CC = g++
-CFLAGS = $(shell sdl2-config --cflags) -Iheader -fsanitize=address -g
-LDFLAGS = $(shell sdl2-config --libs) -lSDL2_ttf -fsanitize=address
+CFLAGS = $(shell sdl2-config --cflags) -Iheader 
+LDFLAGS = $(shell sdl2-config --libs) -lSDL2_ttf 
 
-# The source files are now inside the src directory
+# The source files are inside the src directory
 SRC = src/main.c src/display.c src/event.c src/struct.c src/crud.c
 
-# The object files correspond to the source files
+# The object files correspond to the source files (inside build/)
 OBJ = $(SRC:src/%.c=build/%.o)
 
-# The target will be created in the build directory
+# The target program
 TARGET = build/program
 
-# Create the target (program) by linking the object files
-all: $(TARGET)
+# Ensure the build directory exists
+all: build_dir $(TARGET)
 
+# Create the build directory if it doesn't exist
+build_dir:
+	mkdir -p build
+
+# Link object files to create the final program
 $(TARGET): $(OBJ)
 	$(CC) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
 # Compile each source file into an object file
-build/%.o: src/%.c
+build/%.o: src/%.c | build_dir
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-# Clean up generated files (objects and the target)
+# Clean up the build directory
 clean:
-	rm -f build/*.o $(TARGET)
+	rm -rf build/
 

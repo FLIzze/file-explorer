@@ -28,8 +28,7 @@ int is_file(char *path) {
 void read_file_content(struct terminal *term) {
     FILE *file = fopen(term->path, "r");
     if (file == NULL) {
-        printf("Could not open file %s\n", term->path);
-        free(file);
+        perror("Could not open file");
         return;
     }
 
@@ -45,7 +44,6 @@ void read_file_content(struct terminal *term) {
         if (!new_line.segments) {
             fprintf(stderr, "Memory allocation failed!\n");
             free(new_line.segments);
-            free(file);
             fclose(file);
             return;
         }
@@ -54,11 +52,11 @@ void read_file_content(struct terminal *term) {
         if (!new_line.segments[0].text) {
             fprintf(stderr, "Memory allocation failed!\n");
             free(new_line.segments);
-            free(file);
             fclose(file);
             return;
         }
 
+        new_line.segments[0].is_cached = 0;
         new_line.segments[0].color = (struct rgb){0, 0, 0}; 
         add_line(term, new_line);
     }
@@ -108,6 +106,7 @@ void read_directory_content(struct terminal *term) {
             new_line.segments[0].color = (struct rgb){0, 0, 255}; 
         }
 
+        new_line.segments[0].is_cached = 0;
         add_line(term, new_line);
     }
 
@@ -175,11 +174,17 @@ void delete_content(struct terminal *term, struct cursor *cursor) {
 
     free(new_path);
     int previous_line = term->current_line;
+    int previous_scroll = term->scroll;
+    int tota_line = term->total_line;
     char *previous_path = strdup(term->path);
     free_terminal(term);
-    term->path = previous_path;
-    if (cursor->y != 0) {
-        term->current_line = previous_line -1;
+
+    if (previous_line >= tota_line - 1) {
+        term->current_line = previous_line - 1;
         cursor->y -= (FONT_SIZE + FONT_SPACING_Y);
+    } else {
+        term->current_line = previous_line;
     }
+    term->scroll = previous_scroll;
+    term->path = previous_path;
 }

@@ -6,10 +6,12 @@ void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
         SDL_Renderer *renderer, TTF_Font *font) {
     switch (e.key.keysym.sym) {
         case SDLK_RETURN:
+            if (is_file(term->path)) return;
             goto_directory(cursor, term);
             read_file(term, cursor, renderer, font);
             break;
         case SDLK_MINUS:
+            if (strcmp(term->path, "/") == 0) return;
             goback_directory(cursor, term);
             read_file(term, cursor, renderer, font);
             break;
@@ -65,6 +67,9 @@ void goto_directory(struct cursor *cursor, struct terminal *term) {
     char *selected_file = term->lines[term->current_line].segments[0].text;
     size_t new_path_len = strlen(current_path) + strlen(selected_file) + 2; 
     char *new_path = (char *)malloc(new_path_len);
+    if (!new_path) {
+        fprintf(stderr, "Memory allocation for new_path failed.");
+    }
 
     snprintf(new_path, new_path_len, "%s/%s", current_path, selected_file);
     free_terminal(term);
