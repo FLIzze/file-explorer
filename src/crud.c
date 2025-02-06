@@ -1,7 +1,7 @@
 #include "crud.h"
 #include "stdio.h"
 #include "struct.h"
-#include "display.h"
+#include "event.h"
 #include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -138,7 +138,7 @@ int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *r
         char *new_path = (char *)malloc(new_path_len);
         snprintf(new_path, new_path_len, "%s/%s", term->path, file_name);
 
-        if (!display_confirm(renderer, font, file_name)) {
+        if (!user_confirmation(renderer, font, file_name, term)) {
                 printf("Aborting\n");
                 free(new_path);
                 return 0;
@@ -165,5 +165,6 @@ int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *r
         }
         term->scroll = previous_scroll;
         term->path = previous_path;
+        term->log.message = strdup("Deleted");
         return 1;
 }

@@ -1,4 +1,5 @@
 #include "struct.h"
+#include "display.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,6 +21,7 @@ struct terminal *create_terminal() {
                 return NULL;
         }
         term->lines = NULL;
+        term->log.message = NULL;
         return term;
 }
 
@@ -67,7 +69,20 @@ void free_terminal(struct terminal *term) {
                 free(term->path);
                 term->path = NULL; 
         }
+        if (term->log.message) {
+                free(term->log.message);
+                term->log.message = NULL;
+        }
         term->total_line = 0;
         term->scroll = 0;
         term->current_line = 0;
 }
+
+void update_log(struct terminal *term, Uint32 delay, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor) {
+    if (term->log.message && SDL_GetTicks() - term->log.timestamp > delay * 1000) {
+        free(term->log.message);
+        term->log.message = NULL;
+        display(renderer, font, term, cursor);
+    }
+}
+

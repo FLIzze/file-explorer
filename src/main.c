@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
         int quit = 0;
         while (!quit) {
                 handle_events(&quit, e, cursor, term, renderer, font);
+                update_log(term, LOG_DELAY, renderer, font, cursor);
         }
 
         free_terminal(term);

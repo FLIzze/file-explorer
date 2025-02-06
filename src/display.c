@@ -80,40 +80,19 @@ void display_file_content(SDL_Renderer *renderer, TTF_Font *font, struct termina
         }
 }
 
-int display_confirm(SDL_Renderer *renderer, TTF_Font *font, char* message) {
-        SDL_Event event;
-
+SDL_Texture* display_log(SDL_Renderer *renderer, TTF_Font *font, char* message, struct terminal *term) {
         SDL_Color text_color = { 0, 255, 0 };
         SDL_Color background_color = { 0, 0, 0 };
-        char confirm[50];
-        snprintf(confirm, sizeof(confirm), "%s %s %s ", "Delete", message, "[Y]es [N]o");
 
-        SDL_Texture *text_texture = create_text_texture(renderer, font, confirm, text_color, background_color);
+        SDL_Texture *text_texture = create_text_texture(renderer, font, message, text_color, background_color);
         SDL_Rect text_location = { 0, WINDOW_HEIGHT - 2 * ( FONT_SPACING_Y + FONT_SIZE), 
                 WINDOW_WIDTH, FONT_SPACING_Y + FONT_SIZE };
 
         SDL_QueryTexture(text_texture, NULL, NULL, &text_location.w, &text_location.h);
         SDL_RenderCopy(renderer, text_texture, NULL, &text_location);
         SDL_RenderPresent(renderer);
-
-        while (1) {
-                while (SDL_PollEvent(&event)) {
-                        if (event.type == SDL_QUIT) {
-                                SDL_DestroyTexture(text_texture);
-                                return 0; 
-                        }
-                        if (event.type == SDL_KEYDOWN) {
-                                if (event.key.keysym.sym == SDLK_y || event.key.keysym.sym == SDLK_RETURN) {
-                                        SDL_DestroyTexture(text_texture);
-                                        return 1;
-                                } else if (event.key.keysym.sym == SDLK_n || event.key.keysym.sym == SDLK_ESCAPE) {
-                                        SDL_DestroyTexture(text_texture);
-                                        return 0;
-                                }
-                        }
-                }
-                SDL_Delay(100); 
-        }
+        term->log.timestamp = SDL_GetTicks();
+        return text_texture;
 }
 
 SDL_Texture* create_text_texture(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color fg, SDL_Color bg) {
@@ -141,6 +120,8 @@ void display(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term, stru
         display_lines(renderer, font, term);
         display_cursor(renderer, cursor);
         display_path(term, font, renderer);
-
+        if (term->log.message) {
+                display_log(renderer, font, term->log.message, term);
+        }
         SDL_RenderPresent(renderer);
 }

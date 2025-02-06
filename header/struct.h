@@ -2,6 +2,7 @@
 #define STRUCT_H
 
 #include <SDL.h>
+#include <SDL_ttf.h>
 
 #define WINDOW_NAME "File Explorer"
 #define WINDOW_WIDTH 1080
@@ -13,6 +14,7 @@
 #define FONT_SPACING_X 15
 #define LINE_WIDTH 100
 #define LINE_OFFSET 1
+#define LOG_DELAY 1
 
 #define LINE_HEIGHT (FONT_SPACING_Y + FONT_SIZE)
 #define LINES_HEIGHT (WINDOW_HEIGHT - (LINE_HEIGHT * LINE_OFFSET))
@@ -44,16 +46,23 @@ struct line {
         int segment_count;
 };
 
+struct log {
+        char *message;
+        Uint32 timestamp;
+};
+
 struct terminal {
         int current_line;
         int total_line;
         int scroll;
         char *path;
+        struct log log;
         struct line *lines;
 };
 
 struct terminal *create_terminal();
 void add_line(struct terminal *term, struct line new_line);
 void free_terminal(struct terminal *term);
+void update_log(struct terminal *term, Uint32 delay, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor);
 
 #endif

@@ -132,3 +132,30 @@ void scroll_to(int line, struct cursor *cursor, struct terminal *term, int move_
                 term->scroll += term->current_line - previous_line;
         }
 }
+
+int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char* message, struct terminal *term) {
+        SDL_Event event;
+
+        char full_message[50];
+        snprintf(full_message, sizeof(full_message), "Delete %s         [Y]es [N]o", message);
+        SDL_Texture *texture = display_log(renderer, font, full_message, term);
+
+        while (1) {
+                while (SDL_PollEvent(&event)) {
+                        if (event.type == SDL_QUIT) {
+                                SDL_DestroyTexture(texture);
+                                return 0; 
+                        }
+                        if (event.type == SDL_KEYDOWN) {
+                                if (event.key.keysym.sym == SDLK_y || event.key.keysym.sym == SDLK_RETURN) {
+                                        SDL_DestroyTexture(texture);
+                                        return 1;
+                                } else if (event.key.keysym.sym == SDLK_n || event.key.keysym.sym == SDLK_ESCAPE) {
+                                        SDL_DestroyTexture(texture);
+                                        return 0;
+                                }
+                        }
+                }
+                SDL_Delay(100); 
+        }
+}
