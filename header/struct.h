@@ -13,8 +13,8 @@
 #define FONT_SPACING_Y 5
 #define FONT_SPACING_X 15
 #define LINE_WIDTH 100
-#define LINE_OFFSET 1
-#define LOG_DELAY 1
+#define LINE_OFFSET 2
+#define LOG_DELAY 2
 
 #define LINE_HEIGHT (FONT_SPACING_Y + FONT_SIZE)
 #define LINES_HEIGHT (WINDOW_HEIGHT - (LINE_HEIGHT * LINE_OFFSET))
@@ -51,12 +51,18 @@ struct log {
         Uint32 timestamp;
 };
 
+struct user_input {
+        char *text;
+        int size;
+};
+
 struct terminal {
         int current_line;
         int total_line;
         int scroll;
         char *path;
-        struct log log;
+        struct user_input *user_input;
+        struct log *log;
         struct line *lines;
 };
 

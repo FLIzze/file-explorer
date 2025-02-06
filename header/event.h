@@ -10,6 +10,5 @@ void handle_events(int *quit, SDL_Event e, struct cursor *cursor, struct termina
 void goto_directory(struct cursor *cursor, struct terminal *term);
 void goback_directory(struct cursor *cursor, struct terminal *term);
 void scroll_to(int line, struct cursor *cursor, struct terminal *term, int move_cursor);
-int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char* message, struct terminal *term);
 
 #endif

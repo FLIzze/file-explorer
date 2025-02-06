@@ -12,8 +12,8 @@ void read_file(struct terminal *term, struct cursor *cursor, SDL_Renderer *rende
 void read_file_content(struct terminal *term);
 void read_directory_content(struct terminal *term);
 
-static void delete_directory(char *path);
-static void delete_file(char *path);
+static void delete_directory(char *path, struct terminal *term);
+static void delete_file(char *path, struct terminal *term);
 int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *renderer, TTF_Font *font);
 
 void add_file(struct terminal *term, struct cursor *cursor);

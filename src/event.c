@@ -1,10 +1,11 @@
 #include "event.h"
 #include "display.h"
 #include "crud.h"
+#include "input.h"
 
 void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
                 SDL_Renderer *renderer, TTF_Font *font) {
-        switch (e.key.keysym.sym) {
+        switch(e.key.keysym.sym) {
                 case SDLK_RETURN:
                         if (is_file(term->path)) return;
                         goto_directory(cursor, term);
@@ -28,9 +29,10 @@ void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
                         scroll_to(0, cursor, term, 1);
                         break;
                 case SDLK_a:
-                        add_file(term, cursor);
-                        add_directory(term, cursor);
-                        read_file(term, cursor, renderer, font);
+                        user_text_input(term, renderer, font);
+                        /* add_file(term, cursor); */
+                        /* add_directory(term, cursor); */
+                        /* read_file(term, cursor, renderer, font); */
                         break;
                 case SDLK_x:
                         if (delete_content(term, cursor, renderer, font)) {
@@ -130,32 +132,5 @@ void scroll_to(int line, struct cursor *cursor, struct terminal *term, int move_
                 }
         } else {
                 term->scroll += term->current_line - previous_line;
-        }
-}
-
-int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char* message, struct terminal *term) {
-        SDL_Event event;
-
-        char full_message[50];
-        snprintf(full_message, sizeof(full_message), "Delete %s         [Y]es [N]o", message);
-        SDL_Texture *texture = display_log(renderer, font, full_message, term);
-
-        while (1) {
-                while (SDL_PollEvent(&event)) {
-                        if (event.type == SDL_QUIT) {
-                                SDL_DestroyTexture(texture);
-                                return 0; 
-                        }
-                        if (event.type == SDL_KEYDOWN) {
-                                if (event.key.keysym.sym == SDLK_y || event.key.keysym.sym == SDLK_RETURN) {
-                                        SDL_DestroyTexture(texture);
-                                        return 1;
-                                } else if (event.key.keysym.sym == SDLK_n || event.key.keysym.sym == SDLK_ESCAPE) {
-                                        SDL_DestroyTexture(texture);
-                                        return 0;
-                                }
-                        }
-                }
-                SDL_Delay(100); 
         }
 }

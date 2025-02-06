@@ -21,7 +21,20 @@ struct terminal *create_terminal() {
                 return NULL;
         }
         term->lines = NULL;
-        term->log.message = NULL;
+        term->log = (struct log *)malloc(sizeof(struct log));
+        if (!term->log) {
+                fprintf(stderr, "Memory allocation failed!\n");
+                free(term);
+                return NULL;
+        }
+        term->log->message =  NULL;
+        term->user_input = (struct user_input *)malloc(sizeof(struct user_input));
+        if (!term->user_input) {
+                fprintf(stderr, "Memory allocation failed!\n");
+                free(term);
+                return NULL;
+        }
+
         return term;
 }
 
@@ -61,28 +74,20 @@ void free_terminal(struct terminal *term) {
                 }
         }
 
-        if (term->lines) {
-                free(term->lines);
-                term->lines = NULL;
-        }
-        if (term->path) {
-                free(term->path);
-                term->path = NULL; 
-        }
-        if (term->log.message) {
-                free(term->log.message);
-                term->log.message = NULL;
-        }
+        if (term->lines) free(term->lines); term->lines = NULL;
+        if (term->path) free(term->path); term->path = NULL;
+        if (term->log->message) free(term->log->message); term->log->message = NULL;
+        if (term->user_input->text) free(term->user_input->text); term->user_input->text = NULL;
+
         term->total_line = 0;
         term->scroll = 0;
         term->current_line = 0;
 }
 
 void update_log(struct terminal *term, Uint32 delay, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor) {
-    if (term->log.message && SDL_GetTicks() - term->log.timestamp > delay * 1000) {
-        free(term->log.message);
-        term->log.message = NULL;
+    if (term->log->message && SDL_GetTicks() - term->log->timestamp > delay * 1000) {
+        free(term->log->message);
+        term->log->message = NULL;
         display(renderer, font, term, cursor);
     }
 }
-

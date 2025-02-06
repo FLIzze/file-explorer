@@ -1,7 +1,7 @@
 #include "crud.h"
 #include "stdio.h"
 #include "struct.h"
-#include "event.h"
+#include "input.h"
 #include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -80,8 +80,10 @@ void read_directory_content(struct terminal *term) {
         while ((dir = readdir(d)) != NULL) {
                 if (dir->d_name[0] == '.') continue; 
 
-                char full_path[512];
-                snprintf(full_path, sizeof(full_path), "%s/%s", term->path, dir->d_name);
+                size_t full_path_len = strlen(term->path) + strlen(dir->d_name) + 2;
+                char *full_path = (char *)malloc(full_path_len);
+                snprintf(full_path, full_path_len, "%s/%s", term->path, dir->d_name);
+
                 struct rgb color = is_file(full_path) ? (struct rgb){255, 255, 255} : (struct rgb){0, 0, 255};
                 add_line_to_terminal(term, dir->d_name, color);
         }
@@ -139,7 +141,7 @@ int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *r
         snprintf(new_path, new_path_len, "%s/%s", term->path, file_name);
 
         if (!user_confirmation(renderer, font, file_name, term)) {
-                printf("Aborting\n");
+                term->log->message = strdup("Aborting...");
                 free(new_path);
                 return 0;
         }
@@ -163,8 +165,9 @@ int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *r
         } else {
                 term->current_line = previous_line;
         }
+
         term->scroll = previous_scroll;
         term->path = previous_path;
-        term->log.message = strdup("Deleted");
+        term->log->message = strdup("Deleted");
         return 1;
 }

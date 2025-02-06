@@ -86,12 +86,20 @@ SDL_Texture* display_log(SDL_Renderer *renderer, TTF_Font *font, char* message, 
 
         SDL_Texture *text_texture = create_text_texture(renderer, font, message, text_color, background_color);
         SDL_Rect text_location = { 0, WINDOW_HEIGHT - 2 * ( FONT_SPACING_Y + FONT_SIZE), 
-                WINDOW_WIDTH, FONT_SPACING_Y + FONT_SIZE };
+                0, FONT_SPACING_Y + FONT_SIZE };
 
         SDL_QueryTexture(text_texture, NULL, NULL, &text_location.w, &text_location.h);
         SDL_RenderCopy(renderer, text_texture, NULL, &text_location);
         SDL_RenderPresent(renderer);
-        term->log.timestamp = SDL_GetTicks();
+
+        if (!term->log->message) {
+                term->log->message = strdup(message);
+                term->log->timestamp = SDL_GetTicks();
+        } else if (strcmp(term->log->message, message) != 0) {
+                term->log->message = strdup(message);
+                term->log->timestamp = SDL_GetTicks();
+        }
+
         return text_texture;
 }
 
@@ -120,8 +128,8 @@ void display(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term, stru
         display_lines(renderer, font, term);
         display_cursor(renderer, cursor);
         display_path(term, font, renderer);
-        if (term->log.message) {
-                display_log(renderer, font, term->log.message, term);
+        if (term->log->message) {
+                display_log(renderer, font, term->log->message, term);
         }
         SDL_RenderPresent(renderer);
 }

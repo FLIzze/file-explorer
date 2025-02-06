@@ -3,7 +3,7 @@ CFLAGS = $(shell sdl2-config --cflags) -Iheader
 LDFLAGS = $(shell sdl2-config --libs) -lSDL2_ttf 
 
 # The source files are inside the src directory
-SRC = src/main.c src/display.c src/event.c src/struct.c src/crud.c
+SRC = src/main.c src/display.c src/event.c src/struct.c src/crud.c src/input.c
 
 # The object files correspond to the source files (inside build/)
 OBJ = $(SRC:src/%.c=build/%.o)
