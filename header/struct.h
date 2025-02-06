@@ -12,41 +12,44 @@
 #define FONT_SPACING_Y 5
 #define FONT_SPACING_X 15
 #define LINE_WIDTH 100
+#define LINE_OFFSET 1
 
-#define MAX_VISIBLE_LINE WINDOW_HEIGHT / (FONT_SPACING_Y + FONT_SIZE) 
+#define LINE_HEIGHT (FONT_SPACING_Y + FONT_SIZE)
+#define LINES_HEIGHT (WINDOW_HEIGHT - (LINE_HEIGHT * LINE_OFFSET))
+#define MAX_VISIBLE_LINE (LINES_HEIGHT / LINE_HEIGHT)
 
 struct rgb {
-    Uint8 red;
-    Uint8 green;
-    Uint8 blue;
+        Uint8 red;
+        Uint8 green;
+        Uint8 blue;
 };
 
 struct cursor {
-    int x;
-    int y;
-    float opacity;
-    struct rgb color;
-    int padding;
+        int x;
+        int y;
+        float opacity;
+        struct rgb color;
+        int padding;
 };
 
 struct text_segment {
-    char *text;
-    struct rgb color;
-    SDL_Texture *text_texture;
-    int is_cached;
+        char *text;
+        struct rgb color;
+        SDL_Texture *text_texture;
+        int is_cached;
 };
 
 struct line {
-    struct text_segment *segments;
-    int segment_count;
+        struct text_segment *segments;
+        int segment_count;
 };
 
 struct terminal {
-    int current_line;
-    int total_line;
-    int scroll;
-    char *path;
-    struct line *lines;
+        int current_line;
+        int total_line;
+        int scroll;
+        char *path;
+        struct line *lines;
 };
 
 struct terminal *create_terminal();

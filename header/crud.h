@@ -6,13 +6,20 @@
 #include <ftw.h>
 #include "struct.h"
 
-void read_file(struct terminal *term, struct cursor *cursor, SDL_Renderer *renderer, TTF_Font *font);
 int is_file(char *path);
+
+void read_file(struct terminal *term, struct cursor *cursor, SDL_Renderer *renderer, TTF_Font *font);
 void read_file_content(struct terminal *term);
 void read_directory_content(struct terminal *term);
-void free_content(struct terminal *term, struct cursor *cursor);
+
+static void delete_directory(char *path);
+static void delete_file(char *path);
+int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *renderer, TTF_Font *font);
+
 void add_file(struct terminal *term, struct cursor *cursor);
 void add_directory(struct terminal *term, struct cursor *cursor);
-int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *renderer, TTF_Font *font);
+static void add_line_to_terminal(struct terminal *term, char *text, struct rgb color);
+
+void free_content(struct terminal *term, struct cursor *cursor);
 
 #endif
