@@ -2,51 +2,51 @@
 #include "display.h"
 #include "crud.h"
 #include "input.h"
+#include "struct.h"
 
 void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
                 SDL_Renderer *renderer, TTF_Font *font) {
         switch(e.key.keysym.sym) {
-                case SDLK_RETURN:
-                        if (is_file(term->path)) return;
-                        goto_directory(cursor, term);
+        case SDLK_RETURN:
+                if (is_file(term->path)) return;
+                goto_directory(cursor, term);
+                read_file(term, cursor, renderer, font);
+                break;
+        case SDLK_MINUS:
+                goback_directory(cursor, term);
+                read_file(term, cursor, renderer, font);
+                break;
+        case SDLK_j:
+                scroll_to(term->current_line + 1, cursor, term, 1);
+                break;
+        case SDLK_k:
+                scroll_to(term->current_line - 1, cursor, term, 1);
+                break;
+        case SDLK_e:
+                scroll_to(term->total_line - 1, cursor, term, 1);
+                break;
+        case SDLK_b:
+                scroll_to(0, cursor, term, 1);
+                break;
+        case SDLK_a: 
+                handle_add_file(term, renderer, font, cursor);
+                break; 
+        case SDLK_r: 
+                handle_rename(term, renderer, font, cursor);
+                break;
+        case SDLK_x:
+                if (delete_content(term, cursor, renderer, font)) {
                         read_file(term, cursor, renderer, font);
-                        break;
-                case SDLK_MINUS:
-                        if (strcmp(term->path, "/") == 0) return;
-                        goback_directory(cursor, term);
-                        read_file(term, cursor, renderer, font);
-                        break;
-                case SDLK_j:
-                        scroll_to(term->current_line + 1, cursor, term, 1);
-                        break;
-                case SDLK_k:
-                        scroll_to(term->current_line - 1, cursor, term, 1);
-                        break;
-                case SDLK_e:
-                        scroll_to(term->total_line - 1, cursor, term, 1);
-                        break;
-                case SDLK_b:
-                        scroll_to(0, cursor, term, 1);
-                        break;
-                case SDLK_a: 
-                        handle_add_file(term, renderer, font, cursor);
-                        break; 
-                case SDLK_r: 
-                        handle_rename(term, renderer, font, cursor);
-                        break;
-                case SDLK_x:
-                        if (delete_content(term, cursor, renderer, font)) {
-                                read_file(term, cursor, renderer, font);
-                        }
-                        break;
-                case SDLK_d:
-                        scroll_to(term->current_line + MAX_VISIBLE_LINE, cursor, term, 0);
-                        break;
-                case SDLK_u:
-                        scroll_to(term->current_line - MAX_VISIBLE_LINE, cursor, term, 0);
-                        break;
-                default:
-                        break;
+                }
+                break;
+        case SDLK_d:
+                scroll_to(term->current_line + MAX_VISIBLE_LINE, cursor, term, 0);
+                break;
+        case SDLK_u:
+                scroll_to(term->current_line - MAX_VISIBLE_LINE, cursor, term, 0);
+                break;
+        default:
+                break;
         }
         display(renderer, font, term, cursor);
 }
@@ -57,14 +57,14 @@ void handle_events(
 {
         while (SDL_PollEvent(&e) != 0) {
                 switch(e.type) {
-                        case SDL_QUIT:
-                                *quit = 1;
-                                break;
-                        case SDL_KEYDOWN:
-                                handle_keyboard(e, cursor, term, renderer, font);
-                                break;
-                        default:
-                                break;
+                case SDL_QUIT:
+                        *quit = 1;
+                        break;
+                case SDL_KEYDOWN:
+                        handle_keyboard(e, cursor, term, renderer, font);
+                        break;
+                default:
+                        break;
                 }
         }
 }
@@ -77,7 +77,7 @@ void goto_directory(struct cursor *cursor, struct terminal *term) {
         size_t new_path_len = strlen(current_path) + strlen(selected_file) + 2; 
         char *new_path = (char *)malloc(new_path_len);
         if (!new_path) {
-                fprintf(stderr, "Memory allocation for new_path failed.");
+                fprintf(stderr, "Memory allocation for new_path failed\n");
         }
 
         snprintf(new_path, new_path_len, "%s/%s", current_path, selected_file);
@@ -87,22 +87,23 @@ void goto_directory(struct cursor *cursor, struct terminal *term) {
 }
 
 void goback_directory(struct cursor *cursor, struct terminal *term) {
-        char *last_slash = strrchr(term->path, '/');
-        if (!last_slash || last_slash == term->path) {
-                return;
-        }
+        for (int i = strlen(term->path) - 1; i > 0; i--) {
+                if (term->path[i] == '/') {
+                        char *new_path = (char *)malloc(i + 1); 
+                        if (!new_path) {
+                                fprintf(stderr, "Memory allocation for new_path failed\n");
+                                return;
+                        }
 
-        *last_slash = '\0';
-        char *new_path = strdup(term->path);
-        if (!new_path) {
-                fprintf(stderr, "Memory allocation failed!\n");
-                return;
-        }
-        *last_slash = '/';
+                        strncpy(new_path, term->path, i + 1);
+                        new_path[i] = '\0';
 
-        free_terminal(term);
-        term->path = new_path;
-        cursor->y = 0;
+                        free_terminal(term);
+                        cursor->y = 0;
+                        term->path = new_path;
+                        return;
+                }
+        }
 }
 
 void scroll_to(int line, struct cursor *cursor, struct terminal *term, int move_cursor) { 
@@ -122,7 +123,11 @@ void scroll_to(int line, struct cursor *cursor, struct terminal *term, int move_
 
         if (move_cursor) {
                 if (new_y >= LINES_HEIGHT) {
-                        term->scroll = term->total_line - MAX_VISIBLE_LINE;
+                        if (term->current_line - previous_line == 1) {
+                                term->scroll++;
+                        } else {
+                                term->scroll = term->total_line - MAX_VISIBLE_LINE;
+                        }
                         cursor->y = (MAX_VISIBLE_LINE - 1) * (FONT_SPACING_Y + FONT_SIZE);
                 } else if (new_y < 0) {
                         term->scroll = term->current_line;
@@ -131,7 +136,7 @@ void scroll_to(int line, struct cursor *cursor, struct terminal *term, int move_
                         cursor->y = new_y;
                 }
         } else {
-                term->scroll += term->current_line - previous_line;
+                term->scroll++;
         }
 }
 

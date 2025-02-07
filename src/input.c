@@ -57,39 +57,39 @@ int user_text_input(struct terminal *term, SDL_Renderer *renderer, TTF_Font *fon
                         }
                         if (event.type == SDL_KEYDOWN) {
                                 switch(event.key.keysym.sym) {
-                                        case SDLK_BACKSPACE: {
-                                                term->user_input->size--;
-                                                term->user_input->text[term->user_input->size] = '\0';
-                                                char *new_buffer = (char *)realloc(term->user_input->text, term->user_input->size);
-                                                if (!new_buffer) {
-                                                        fprintf(stderr, "Memory allocation failed\n");
-                                                        return 0;
-                                                }
-                                                term->user_input->text = new_buffer;
-                                                display_log(renderer, font, new_buffer, term);
-                                                             }
-                                                break; 
-                                        case SDLK_RETURN:
-                                                term->log->message = strdup(term->user_input->text);
-                                                return 1;
-                                        case SDLK_ESCAPE:
-                                                term->log->message = strdup("Aborting...");
+                                case SDLK_BACKSPACE: {
+                                        term->user_input->size--;
+                                        term->user_input->text[term->user_input->size] = '\0';
+                                        char *new_buffer = (char *)realloc(term->user_input->text, term->user_input->size);
+                                        if (!new_buffer) {
+                                                fprintf(stderr, "Memory allocation failed\n");
                                                 return 0;
-                                        default:
-                                                char to_ascii = (char)event.key.keysym.sym;
-                                                size_t input_len = strlen(term->user_input->text) + 2;
-                                                char *new_buffer= (char *)realloc(term->user_input->text, input_len);
-                                                if (!new_buffer) {
-                                                        fprintf(stderr, "Memory allocation failed\n");
-                                                        return 0;
-                                                }
-                                                term->user_input->text = new_buffer;
-                                                size_t text_len = strlen(term->user_input->text);
-                                                term->user_input->text[text_len] = to_ascii;
-                                                term->user_input->text[text_len + 1] = '\0';
-                                                term->user_input->size++;
-                                                display_log(renderer, font, new_buffer, term);
-                                                break;
+                                        }
+                                        term->user_input->text = new_buffer;
+                                        display_log(renderer, font, new_buffer, term);
+                                                     }
+                                        break; 
+                                case SDLK_RETURN:
+                                        term->log->message = strdup(term->user_input->text);
+                                        return 1;
+                                case SDLK_ESCAPE:
+                                        term->log->message = strdup("Aborting...");
+                                        return 0;
+                                default:
+                                        char to_ascii = (char)event.key.keysym.sym;
+                                        size_t input_len = strlen(term->user_input->text) + 2;
+                                        char *new_buffer= (char *)realloc(term->user_input->text, input_len);
+                                        if (!new_buffer) {
+                                                fprintf(stderr, "Memory allocation failed\n");
+                                                return 0;
+                                        }
+                                        term->user_input->text = new_buffer;
+                                        size_t text_len = strlen(term->user_input->text);
+                                        term->user_input->text[text_len] = to_ascii;
+                                        term->user_input->text[text_len + 1] = '\0';
+                                        term->user_input->size++;
+                                        display_log(renderer, font, new_buffer, term);
+                                        break;
                                 }
                         }
                 }

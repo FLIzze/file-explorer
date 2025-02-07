@@ -13,7 +13,7 @@ struct terminal *create_terminal() {
         term->current_line = 0;
         term->total_line = 0;
         term->scroll = 0;
-        term->path = strdup("/home/abel/Documents/");
+        term->path = strdup("/");
         if (!term->path) {
                 fprintf(stderr, "Memory allocation failed!\n");
                 return NULL;
