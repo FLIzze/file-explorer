@@ -85,29 +85,37 @@ void read_directory_content(struct terminal *term) {
                 snprintf(full_path, full_path_len, "%s/%s", term->path, dir->d_name);
 
                 struct rgb color = is_file(full_path) ? (struct rgb){255, 255, 255} : (struct rgb){0, 0, 255};
+                free(full_path);
                 add_line_to_terminal(term, dir->d_name, color);
         }
 
         closedir(d);
 }
 
-void add_file(struct terminal *term, struct cursor *cursor) {
-        FILE *new_file = fopen("/home/abel/Documents/test.txt", "w");
+void add_file(struct terminal *term, struct cursor *cursor, char *path) {
+        FILE *new_file = fopen(path, "w");
         if (new_file == NULL) {
                 perror("Error creating file");
                 return;
         }
-
         fclose(new_file);
+        char *current_path = strdup(term->path);
         free_terminal(term);
-        term->path = strdup("/home/abel/Documents");
+        term->path = current_path;
         cursor->y = 0;
+        term->log->message = path;
 }
 
-void add_directory(struct terminal *term, struct cursor *cursor) {
-        if (mkdir("/home/abel/Documents/test", 0700) == -1) {
-                perror("Error creating directory");
+void add_directory(struct terminal *term, struct cursor *cursor, char *path) {
+        if (mkdir(path, 0700) == -1) {
+                term->log->message = strdup("error creating directory");
+                return;
         }
+        char *current_path = strdup(term->path);
+        free_terminal(term);
+        term->path = current_path;
+        cursor->y = 0;
+        term->log->message = path;
 }
 
 static int remove_callback(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {

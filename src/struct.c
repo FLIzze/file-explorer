@@ -8,30 +8,26 @@ struct terminal *create_terminal() {
         struct terminal *term = (struct terminal *)malloc(sizeof(struct terminal));
         if (!term) {
                 fprintf(stderr, "Memory allocation failed!\n");
-                free(term);
                 return NULL;
         }
         term->current_line = 0;
         term->total_line = 0;
         term->scroll = 0;
-        term->path = strdup("/");
+        term->path = strdup("/home/abel/Documents/");
         if (!term->path) {
                 fprintf(stderr, "Memory allocation failed!\n");
-                free(term);
                 return NULL;
         }
         term->lines = NULL;
         term->log = (struct log *)malloc(sizeof(struct log));
         if (!term->log) {
                 fprintf(stderr, "Memory allocation failed!\n");
-                free(term);
                 return NULL;
         }
         term->log->message =  NULL;
         term->user_input = (struct user_input *)malloc(sizeof(struct user_input));
         if (!term->user_input) {
                 fprintf(stderr, "Memory allocation failed!\n");
-                free(term);
                 return NULL;
         }
 
@@ -77,7 +73,6 @@ void free_terminal(struct terminal *term) {
         if (term->lines) free(term->lines); term->lines = NULL;
         if (term->path) free(term->path); term->path = NULL;
         if (term->log->message) free(term->log->message); term->log->message = NULL;
-        if (term->user_input->text) free(term->user_input->text); term->user_input->text = NULL;
 
         term->total_line = 0;
         term->scroll = 0;

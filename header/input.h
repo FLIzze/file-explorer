@@ -6,6 +6,6 @@
 #include "struct.h"
 
 int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char* message, struct terminal *term);
-void user_text_input(struct terminal *term, SDL_Renderer *renderer, TTF_Font *font);
+int user_text_input(struct terminal *term, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor);
 
 #endif

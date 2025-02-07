@@ -81,26 +81,32 @@ void display_file_content(SDL_Renderer *renderer, TTF_Font *font, struct termina
 }
 
 SDL_Texture* display_log(SDL_Renderer *renderer, TTF_Font *font, char* message, struct terminal *term) {
-        SDL_Color text_color = { 0, 255, 0 };
-        SDL_Color background_color = { 0, 0, 0 };
+    SDL_Color text_color = { 0, 255, 0 };
+    SDL_Color background_color = { 0, 0, 0 };
 
-        SDL_Texture *text_texture = create_text_texture(renderer, font, message, text_color, background_color);
-        SDL_Rect text_location = { 0, WINDOW_HEIGHT - 2 * ( FONT_SPACING_Y + FONT_SIZE), 
-                0, FONT_SPACING_Y + FONT_SIZE };
+    SDL_Rect log_area = { 
+        0, WINDOW_HEIGHT - 2 * (FONT_SPACING_Y + FONT_SIZE), 
+        WINDOW_WIDTH, FONT_SPACING_Y + FONT_SIZE 
+    };
 
-        SDL_QueryTexture(text_texture, NULL, NULL, &text_location.w, &text_location.h);
-        SDL_RenderCopy(renderer, text_texture, NULL, &text_location);
-        SDL_RenderPresent(renderer);
+    SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, 255);
+    SDL_RenderFillRect(renderer, &log_area);
 
-        if (!term->log->message) {
-                term->log->message = strdup(message);
-                term->log->timestamp = SDL_GetTicks();
-        } else if (strcmp(term->log->message, message) != 0) {
-                term->log->message = strdup(message);
-                term->log->timestamp = SDL_GetTicks();
-        }
+    SDL_Texture *text_texture = create_text_texture(renderer, font, message, text_color, background_color);
+    SDL_QueryTexture(text_texture, NULL, NULL, &log_area.w, &log_area.h);
+    SDL_RenderCopy(renderer, text_texture, NULL, &log_area);
+    SDL_RenderPresent(renderer);
 
-        return text_texture;
+    if (!term->log->message) {
+        term->log->message = strdup(message);
+        term->log->timestamp = SDL_GetTicks();
+    } else if (strcmp(term->log->message, message) != 0) {
+        free(term->log->message);  
+        term->log->message = strdup(message);
+        term->log->timestamp = SDL_GetTicks();
+    }
+
+    return text_texture;
 }
 
 SDL_Texture* create_text_texture(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color fg, SDL_Color bg) {
