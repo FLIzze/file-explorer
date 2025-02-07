@@ -20,6 +20,9 @@ void add_file(struct terminal *term, struct cursor *cursor, char *path);
 void add_directory(struct terminal *term, struct cursor *cursor, char *path);
 static void add_line_to_terminal(struct terminal *term, char *text, struct rgb color);
 
+void rename_file(struct terminal *term, char *path);
+void rename_directory(char *previous_path, char *new_path);
+
 void free_content(struct terminal *term, struct cursor *cursor);
 
 #endif

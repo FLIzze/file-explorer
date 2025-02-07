@@ -96,7 +96,6 @@ void add_file(struct terminal *term, struct cursor *cursor, char *path) {
         FILE *new_file = fopen(path, "w");
         if (new_file == NULL) {
                 perror("Error creating file");
-                return;
         }
         fclose(new_file);
         char *current_path = strdup(term->path);
@@ -109,7 +108,6 @@ void add_file(struct terminal *term, struct cursor *cursor, char *path) {
 void add_directory(struct terminal *term, struct cursor *cursor, char *path) {
         if (mkdir(path, 0700) == -1) {
                 term->log->message = strdup("error creating directory");
-                return;
         }
         char *current_path = strdup(term->path);
         free_terminal(term);
@@ -178,4 +176,13 @@ int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *r
         term->path = previous_path;
         term->log->message = strdup("Deleted");
         return 1;
+}
+
+void rename_file(char *path) {
+}
+
+void rename_directory(char *previous_path, char *new_path) {
+        if (rename(previous_path, new_path) != 0) {
+                fprintf(stderr, "couldnt rename\n");
+        }
 }

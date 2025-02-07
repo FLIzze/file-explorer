@@ -1,7 +1,6 @@
 #include "input.h"
 #include "SDL_keycode.h"
 #include "display.h"
-#include "crud.h"
 
 int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char* message, struct terminal *term) {
         SDL_Event event;
@@ -61,7 +60,7 @@ int user_text_input(struct terminal *term, SDL_Renderer *renderer, TTF_Font *fon
                                         case SDLK_BACKSPACE: {
                                                 term->user_input->size--;
                                                 term->user_input->text[term->user_input->size] = '\0';
-                                                char *new_buffer= (char *)realloc(term->user_input->text, term->user_input->size);
+                                                char *new_buffer = (char *)realloc(term->user_input->text, term->user_input->size);
                                                 if (!new_buffer) {
                                                         fprintf(stderr, "Memory allocation failed\n");
                                                         return 0;

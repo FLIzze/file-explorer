@@ -28,22 +28,12 @@ void handle_keyboard(SDL_Event e, struct cursor *cursor, struct terminal *term,
                 case SDLK_b:
                         scroll_to(0, cursor, term, 1);
                         break;
-                case SDLK_a: {
-                        if (!user_text_input(term, renderer, font, cursor)) {
-                                break;
-                        }
-
-                        size_t full_path_len = strlen(term->path) + strlen(term->user_input->text) + 2;
-                        char *full_path = (char *)malloc(full_path_len);
-                        snprintf(full_path, full_path_len, "%s/%s", term->path, term->user_input->text);
-                        if (term->user_input->text[term->user_input->size - 1] == '/') {
-                                add_directory(term, cursor, full_path);
-                        } else {
-                                add_file(term, cursor, full_path);
-                        }
-
-                        read_file(term, cursor, renderer, font);
-                        break; }
+                case SDLK_a: 
+                        handle_add_file(term, renderer, font, cursor);
+                        break; 
+                case SDLK_r: 
+                        handle_rename(term, renderer, font, cursor);
+                        break;
                 case SDLK_x:
                         if (delete_content(term, cursor, renderer, font)) {
                                 read_file(term, cursor, renderer, font);
@@ -143,4 +133,40 @@ void scroll_to(int line, struct cursor *cursor, struct terminal *term, int move_
         } else {
                 term->scroll += term->current_line - previous_line;
         }
+}
+
+void handle_add_file(struct terminal *term, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor) {
+        if (!user_text_input(term, renderer, font, cursor)) {
+                return;
+        }
+
+        size_t full_path_len = strlen(term->path) + strlen(term->user_input->text) + 2;
+        char *full_path = (char *)malloc(full_path_len);
+        snprintf(full_path, full_path_len, "%s/%s", term->path, term->user_input->text);
+        if (term->user_input->text[term->user_input->size - 1] == '/') {
+                add_directory(term, cursor, full_path);
+        } else {
+                add_file(term, cursor, full_path);
+        }
+
+        read_file(term, cursor, renderer, font);
+}
+
+void handle_rename(struct terminal *term, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor) {
+        if (!user_text_input(term, renderer, font, cursor)) {
+                return;
+        }
+        char *file_name = term->lines[term->current_line].segments[0].text;
+
+        size_t previous_path_len = strlen(term->path) + strlen(file_name) + 2; 
+        size_t new_path_len = strlen(term->path) + strlen(term->user_input->text) + 2; 
+
+        char *previous_path = (char *)malloc(previous_path_len);
+        char *new_path = (char *)malloc (new_path_len);
+
+        snprintf(previous_path, previous_path_len, "%s%s", term->path, file_name);
+        snprintf(new_path, new_path_len, "%s%s", term->path, term->user_input->text);
+
+        rename_directory(previous_path, new_path);
+        read_file(term, cursor, renderer, font);
 }

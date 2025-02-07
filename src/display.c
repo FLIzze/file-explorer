@@ -112,13 +112,13 @@ SDL_Texture* display_log(SDL_Renderer *renderer, TTF_Font *font, char* message, 
 SDL_Texture* create_text_texture(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color fg, SDL_Color bg) {
         SDL_Surface *surface = TTF_RenderText_Shaded(font, text, fg, bg);
         if (!surface) {
-                fprintf(stderr, "Could not create surface");
+                fprintf(stderr, "Could not create surface\n");
                 return NULL;
         }
 
         SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
         if (!texture) {
-                fprintf(stderr, "Could not create texture");
+                fprintf(stderr, "Could not create texture\n");
                 return NULL;
         }
 
