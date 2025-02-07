@@ -149,6 +149,11 @@ void handle_add_file(struct terminal *term, SDL_Renderer *renderer, TTF_Font *fo
                 add_file(term, cursor, full_path);
         }
 
+        char *current_path = strdup(term->path);
+        free_terminal(term);
+        term->path = current_path;
+        cursor->y = 0;
+        term->log->message = full_path;
         read_file(term, cursor, renderer, font);
 }
 
@@ -168,5 +173,11 @@ void handle_rename(struct terminal *term, SDL_Renderer *renderer, TTF_Font *font
         snprintf(new_path, new_path_len, "%s%s", term->path, term->user_input->text);
 
         rename_directory(previous_path, new_path);
+
+        char *current_path = strdup(term->path);
+        free_terminal(term);
+        term->path = current_path;
+        cursor->y = 0;
+        term->log->message = new_path;
         read_file(term, cursor, renderer, font);
 }

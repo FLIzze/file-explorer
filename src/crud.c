@@ -98,22 +98,12 @@ void add_file(struct terminal *term, struct cursor *cursor, char *path) {
                 perror("Error creating file");
         }
         fclose(new_file);
-        char *current_path = strdup(term->path);
-        free_terminal(term);
-        term->path = current_path;
-        cursor->y = 0;
-        term->log->message = path;
 }
 
 void add_directory(struct terminal *term, struct cursor *cursor, char *path) {
         if (mkdir(path, 0700) == -1) {
                 term->log->message = strdup("error creating directory");
         }
-        char *current_path = strdup(term->path);
-        free_terminal(term);
-        term->path = current_path;
-        cursor->y = 0;
-        term->log->message = path;
 }
 
 static int remove_callback(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
@@ -176,9 +166,6 @@ int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *r
         term->path = previous_path;
         term->log->message = strdup("Deleted");
         return 1;
-}
-
-void rename_file(char *path) {
 }
 
 void rename_directory(char *previous_path, char *new_path) {
