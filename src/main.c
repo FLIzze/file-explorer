@@ -1,74 +1,57 @@
-#include "display.h"
+#include "sdl_init.h"
 #include "struct.h"
-#include "event.h"
+#include "draw.h"
 #include "crud.h"
+#include "event.h"
 
 int main(int argc, char *argv[]) {
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-                fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        SDL_Window *window = NULL;
+        SDL_Renderer *renderer = initialize_SDL(window);
+        TTF_Font *font = initialize_font();
+
+        struct app *app = (struct app *)malloc(sizeof(struct app));
+        if (!app) {
+                fprintf(stderr, "Memory allocation failed for app\n");
+                return -1;
+        }
+        app->path = strdup("/");
+        if (!app->path) {
+                fprintf(stderr, "Memory allocation failed for app->path\n");
+                free(app);
                 return -1;
         }
 
-        if (TTF_Init() == -1) {
-                fprintf(stderr, "SDL_ttf could not initialize! TTF_Error: %s\n", TTF_GetError());
+        app->file_list = (struct file_list *)malloc(sizeof(struct file_list));
+        if (!app->file_list) {
+                fprintf(stderr, "Memory allocation failed for file_list\n");
+                free(app->path);
+                free(app);
                 return -1;
         }
+        app->file_list->file_entry = NULL;
+        app->file_list->capacity = 0;
+        app->file_list->count = 0;
 
-        SDL_Window *window = SDL_CreateWindow(WINDOW_NAME, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-        if (!window) {
-                fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
-                SDL_Quit();
-                return -1;
-        }
+        app->cursor = (struct cursor *)malloc(sizeof(struct cursor));
+        app->cursor->column = 0;
+        app->cursor->line = 2;
+        app->cursor->scroll = 0;
+        app->cursor->color.a = 100;
+        app->cursor->color.r = 255;
+        app->cursor->color.g = 0;
+        app->cursor->color.b = 0;
 
-        SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-        if (!renderer) {
-                fprintf(stderr, "Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-                SDL_DestroyWindow(window);
-                SDL_Quit();
-                return -1;
-        }
-
-        TTF_Font *font = TTF_OpenFont("./roboto.ttf", FONT_SIZE);
-        if (font == NULL) {
-                fprintf(stderr, "Failed to load font! TTF_Error: %s\n", TTF_GetError());
-                return -1;
-        }
-
-        struct cursor *cursor = (struct cursor *)malloc(sizeof(struct cursor));
-        struct terminal *term = create_terminal();
-
-        if (cursor == NULL) {
-                fprintf(stderr, "Failed to allocate memory for cursor\n");
-                return -1;
-        }
-
-        cursor->x = 0;
-        cursor->y = 0;
-        cursor->color = { 0, 255, 0 };
-        cursor->opacity = 0.4f;
-        cursor->padding = 5;
-
-        read_file(term, cursor, renderer, font);
-        display(renderer, font, term, cursor);
+        read_file(renderer, app);
+        draw(renderer, font, app);
 
         SDL_Event e;
         int quit = 0;
         while (!quit) {
-                handle_events(&quit, e, cursor, term, renderer, font);
-                update_log(term, LOG_DELAY, renderer, font, cursor);
+                handle_events(&quit, e, app, renderer, font);
+                /* update_log(term, LOG_DELAY, renderer, font, cursor); */
         }
 
-        free_terminal(term);
-        free(term);
-        free(cursor);
-
-        TTF_CloseFont(font);
-        TTF_Quit();
-
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
+        cleanup_SDL(window, renderer);
 
         return 0;
 }

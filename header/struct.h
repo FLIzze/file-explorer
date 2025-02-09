@@ -4,71 +4,98 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-#define WINDOW_NAME "File Explorer"
-#define WINDOW_WIDTH 1080
-#define WINDOW_HEIGHT 720
-#define CURSOR_WIDTH 15
-#define CURSOR_HEIGHT 30
-#define FONT_SIZE 25
-#define FONT_SPACING_Y 5
-#define FONT_SPACING_X 15
-#define LINE_WIDTH 100
-#define LINE_OFFSET 2
-#define LOG_DELAY 2
+#define ADD_DA(array, count, capacity, type, value) \
+        do { \
+                if ((count) >= (capacity)) { \
+                        size_t new_capacity = (capacity) == 0 ? 1 : (capacity) * 2; \
+                        type *new_array = (type *)realloc((array), new_capacity * sizeof(type)); \
+                        if (!new_array) { \
+                                fprintf(stderr, "Memory reallocation failed for %s\n", #array); \
+                                break; \
+                        } \
+                        (array) = new_array; \
+                        (capacity) = new_capacity; \
+                } \
+                (array)[(count)] = (value); \
+                (count)++; \
+        } while (0)
 
-#define LINE_HEIGHT (FONT_SPACING_Y + FONT_SIZE)
-#define LINES_HEIGHT (WINDOW_HEIGHT - (LINE_HEIGHT * LINE_OFFSET))
-#define MAX_VISIBLE_LINE (LINES_HEIGHT / LINE_HEIGHT)
+enum mode {
+        FILE_EXPLORER,
+        TEXT_EDITOR,
+};
 
-struct rgb {
-        Uint8 red;
-        Uint8 green;
-        Uint8 blue;
+enum editor_mode {
+        NORMAL,
+        INSERT,
+};
+
+enum log_level {
+        INFO,
+        WARNING,
+        ERROR,
+};
+
+struct file_list {
+        struct file_entry *file_entry;
+        size_t count; 
+        size_t capacity;
+};
+
+struct file_entry {
+        char *name;
+        SDL_Color background_color;
+        SDL_Color foreground_color;
+        short is_file;
+        time_t last_edit;
+        time_t creation;
+};
+
+struct text_editor {
+        enum mode editor_mode;
+        struct lines *lines;
+};
+
+struct app {
+        char *path;
+        struct cursor *cursor;
+        struct user_input *input;
+        struct log *log;
+        struct file_list *file_list;
+        struct text_editor *editor;
+        enum mode mode;
 };
 
 struct cursor {
-        int x;
-        int y;
-        float opacity;
-        struct rgb color;
-        int padding;
-};
-
-struct text_segment {
-        char *text;
-        struct rgb color;
-        SDL_Texture *text_texture;
-        int is_cached;
-};
-
-struct line {
-        struct text_segment *segments;
-        int segment_count;
+        int scroll;
+        int column;
+        int line;
+        SDL_Color color;
 };
 
 struct log {
         char *message;
-        Uint32 timestamp;
+        unsigned int timestamp;
+        enum log_level log_level;
 };
 
 struct user_input {
         char *text;
-        int size;
+        size_t count;
+        size_t capacity;
 };
 
-struct terminal {
-        int current_line;
-        int total_line;
-        int scroll;
-        char *path;
-        struct user_input *user_input;
-        struct log *log;
-        struct line *lines;
+struct text_segment {
+        char *text;
+        SDL_Color color;
+        size_t count;
+        size_t capacity;
 };
 
-struct terminal *create_terminal();
-void add_line(struct terminal *term, struct line new_line);
-void free_terminal(struct terminal *term);
-void update_log(struct terminal *term, Uint32 delay, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor);
+struct lines {
+        struct text_segment *segments;
+        size_t count; 
+        size_t capacity;
+};
 
 #endif
