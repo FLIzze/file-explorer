@@ -101,7 +101,8 @@ void read_directory_content(struct app *app) {
                         continue;
                 }
 
-                ADD_DA(app->file_list->file_entry, app->file_list->count, app->file_list->capacity, struct file_entry, entry);
+                struct file_list *file_list = app->file_list;
+                ADD_DA(file_list->file_entry, file_list->count, file_list->capacity, struct file_entry, entry);
 
                 free(full_path);
         }
