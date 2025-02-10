@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
         app->cursor = (struct cursor *)malloc(sizeof(struct cursor));
         app->cursor->column = 0;
-        app->cursor->line = 2;
+        app->cursor->line = 1;
         app->cursor->scroll = 0;
         app->cursor->color.a = 100;
         app->cursor->color.r = 255;
@@ -48,10 +48,11 @@ int main(int argc, char *argv[]) {
         int quit = 0;
         while (!quit) {
                 handle_events(&quit, e, app, renderer, font);
-                /* update_log(term, LOG_DELAY, renderer, font, cursor); */
+                draw(renderer, font, app);
         }
 
         cleanup_SDL(window, renderer);
+        free_content(app);
 
         return 0;
 }

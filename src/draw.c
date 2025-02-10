@@ -35,48 +35,75 @@
 /*         } */
 /* } */
 
-/* SDL_Texture* display_log(SDL_Renderer *renderer, TTF_Font *font, char* message, struct terminal *term) { */
-/*     SDL_Color text_color = { 0, 255, 0 }; */
-/*     SDL_Color background_color = { 0, 0, 0 }; */
+SDL_Texture* draw_log(SDL_Renderer *renderer, TTF_Font *font, char* title, char* message, struct app *app) {
+    SDL_Color text_color = { 0, 255, 0 }; // Green text
+    SDL_Color background_color = { 255, 0, 0 }; // Red background
 
-/*     SDL_Rect log_area = { */ 
-/*         0, WINDOW_HEIGHT - 2 * (FONT_SPACING_Y + FONT_SIZE), */ 
-/*         WINDOW_WIDTH, FONT_SPACING_Y + FONT_SIZE */ 
-/*     }; */
+    // Define the size of the square (let's use 400x400 as an example)
+    SDL_Rect square_area = { (WINDOW_WIDTH - 400) / 2, (WINDOW_HEIGHT - 400) / 2, 400, 400 };
 
-/*     SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, 255); */
-/*     SDL_RenderFillRect(renderer, &log_area); */
+    // Set the background color for the square
+    SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, 255);
+    SDL_RenderFillRect(renderer, &square_area); // Draw the square
 
-/*     SDL_Texture *text_texture = create_text_texture(renderer, font, message, text_color, background_color); */
-/*     SDL_QueryTexture(text_texture, NULL, NULL, &log_area.w, &log_area.h); */
-/*     SDL_RenderCopy(renderer, text_texture, NULL, &log_area); */
-/*     SDL_RenderPresent(renderer); */
+    // Calculate the width and height of the title text
+    int title_width, title_height;
+    if (TTF_SizeText(font, title, &title_width, &title_height) == -1) {
+        // Handle error if the font size calculation fails
+        printf("Error calculating text size: %s\n", TTF_GetError());
+        return NULL;
+    }
 
-/*     if (!term->log->message) { */
-/*         term->log->message = strdup(message); */
-/*         term->log->timestamp = SDL_GetTicks(); */
-/*     } else if (strcmp(term->log->message, message) != 0) { */
-/*         free(term->log->message); */  
-/*         term->log->message = strdup(message); */
-/*         term->log->timestamp = SDL_GetTicks(); */
-/*     } */
+    // Create the title texture
+    SDL_Texture *title_texture = create_text_texture(renderer, font, title, text_color, background_color);
 
-/*     return text_texture; */
-/* } */
+    // Position the title at the top-center of the square
+    SDL_Rect title_area = { 
+        square_area.x + (square_area.w - title_width) / 2, 
+        square_area.y, 
+        title_width, title_height 
+    };
+
+    // Render the title text at the top-center of the square
+    SDL_RenderCopy(renderer, title_texture, NULL, &title_area);
+
+    // Calculate the width and height of the message text
+    int message_width, message_height;
+    if (TTF_SizeText(font, message, &message_width, &message_height) == -1) {
+        // Handle error if the font size calculation fails
+        printf("Error calculating message size: %s\n", TTF_GetError());
+        return NULL;
+    }
+
+    // Create the message texture
+    SDL_Texture *message_texture = create_text_texture(renderer, font, message, text_color, background_color);
+
+    // Position the message at the bottom-left of the square
+    SDL_Rect message_area = { 
+        square_area.x, 
+        square_area.y + square_area.h - message_height, 
+        message_width, message_height 
+    };
+
+    // Render the message text at the bottom-left of the square
+    SDL_RenderCopy(renderer, message_texture, NULL, &message_area);
+
+    // Present the renderer
+    SDL_RenderPresent(renderer);
+
+    return title_texture;
+}
 
 void draw_lines(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         SDL_Color text_color = { 0, 0, 0 };
         SDL_Color background_color = { 255, 255, 255 };
         int position_y = LINE_HEIGHT;
 
-        int start_line = 0;
-        int end_line = MAX_VISIBLE_LINE;
+        int end_line = app->file_list->count >= MAX_VISIBLE_LINE - LINE_OFFSET 
+                ? MAX_VISIBLE_LINE : app->file_list->count;
+        SDL_Texture *texture;
 
-        if (app->mode == FILE_EXPLORER) {
-                end_line = (end_line > app->file_list->count) ? app->file_list->count : end_line;
-        }
-
-        for (int i = start_line; i < end_line; i++) {
+        for (int i = app->cursor->scroll; i < end_line + app->cursor->scroll; i++) {
                 char line_number[12];
                 snprintf(line_number, sizeof(line_number), "%d", i + 1);
                 SDL_Texture *texture = create_text_texture(renderer, font, line_number, text_color, background_color);
@@ -84,10 +111,11 @@ void draw_lines(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
 
                 SDL_QueryTexture(texture, NULL, NULL, &location.w, &location.h);
                 SDL_RenderCopy(renderer, texture, NULL, &location);
-                SDL_DestroyTexture(texture);
 
                 position_y += LINE_HEIGHT;
         }
+
+        SDL_DestroyTexture(texture);
 }
 
 SDL_Texture* create_text_texture(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color fg, SDL_Color bg) {
@@ -109,10 +137,31 @@ SDL_Texture* create_text_texture(SDL_Renderer *renderer, TTF_Font *font, const c
 
 void draw_explorer_content(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         int position_y = LINE_HEIGHT;
-        for (int i = 0; i < app->file_list->count; i++) {
+        int end_line = app->file_list->count >= MAX_VISIBLE_LINE - LINE_OFFSET 
+                ? MAX_VISIBLE_LINE : app->file_list->count;
+        for (int i = app->cursor->scroll; i < end_line + app->cursor->scroll; i++) {
                 struct file_entry entry = app->file_list->file_entry[i];
-                SDL_Texture *texture = create_text_texture(renderer, font, entry.name, entry.foreground_color, entry.background_color);
-                SDL_Rect location = { LINE_WIDTH, position_y, 0, LINE_HEIGHT };
+                SDL_Color background_color;
+                SDL_Color foreground_color;
+
+                if (i == app->cursor->line + app->cursor->scroll) {
+                        background_color = { 255, 255, 255, 255};
+                        foreground_color = { 255, 0, 0 ,255 };
+                        SDL_Texture *texture = create_text_texture(renderer, font, ">", 
+                                        foreground_color, background_color);
+                        int current_line = (app->cursor->line + LINE_OFFSET) * LINE_HEIGHT;
+                        SDL_Rect location = { 5, current_line, 0, LINE_HEIGHT };
+                        SDL_QueryTexture(texture, NULL, NULL, &location.w, &location.h);
+                        SDL_RenderCopy(renderer, texture, NULL, &location);
+                        SDL_DestroyTexture(texture);
+                } else {
+                        background_color = entry.background_color;
+                        foreground_color = entry.foreground_color;
+                }
+
+                SDL_Texture *texture = create_text_texture(renderer, font, entry.name, 
+                                foreground_color, background_color);
+                SDL_Rect location = { 50, position_y, 0, LINE_HEIGHT };
                 SDL_QueryTexture(texture, NULL, NULL, &location.w, &location.h);
                 SDL_RenderCopy(renderer, texture, NULL, &location);
                 SDL_DestroyTexture(texture);
@@ -131,22 +180,28 @@ void draw_path(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         SDL_DestroyTexture(text_texture);
 }
 
-void display_cursor(SDL_Renderer *renderer, struct app *app) {
-        struct cursor *cursor = app->cursor;
+void draw_cursor(SDL_Renderer *renderer, struct app *app) {
+        /* struct cursor *cursor = app->cursor; */
 
-        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(renderer, cursor->color.r, cursor->color.g, cursor->color.b, cursor->color.a);
-        SDL_Rect rect = { LINE_WIDTH + cursor->column * FONT_SIZE, cursor->line * LINE_HEIGHT, 15, LINE_HEIGHT }; 
-        SDL_RenderFillRect(renderer, &rect);
+        /* SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); */
+        /* SDL_SetRenderDrawColor(renderer, cursor->color.r, cursor->color.g, cursor->color.b, cursor->color.a); */
+        /* SDL_Rect rect = { 0 + cursor->column * FONT_SIZE, */ 
+        /*         (cursor->line + LINE_OFFSET) * LINE_HEIGHT, */ 
+        /*         15, */ 
+        /*         LINE_HEIGHT }; */ 
+        /* SDL_RenderFillRect(renderer, &rect); */
 }
 
 void draw(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
         SDL_RenderClear(renderer);
         draw_explorer_content(renderer, font, app);
-        draw_lines(renderer, font, app);
+        /* draw_lines(renderer, font, app); */
         draw_path(renderer, font, app);
-        display_cursor(renderer, app);
+        draw_cursor(renderer, app);
+        char title[] = "title";
+        char message[] = "message";
+        draw_log(renderer, font, title, message, app);
 
         /* if (term->log->message) { */
         /*         display_log(renderer, font, term->log->message, term); */

@@ -98,4 +98,6 @@ struct lines {
         size_t capacity;
 };
 
+void free_content(struct app *app);
+
 #endif
