@@ -35,63 +35,50 @@
 /*         } */
 /* } */
 
-SDL_Texture* draw_log(SDL_Renderer *renderer, TTF_Font *font, char* title, char* message, struct app *app) {
-    SDL_Color text_color = { 0, 255, 0 }; // Green text
-    SDL_Color background_color = { 255, 0, 0 }; // Red background
+SDL_Texture* draw_log(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
+        SDL_Color text_color = { 0, 255, 0 }; 
+        SDL_Color background_color = { 255, 0, 0 }; 
 
-    // Define the size of the square (let's use 400x400 as an example)
-    SDL_Rect square_area = { (WINDOW_WIDTH - 400) / 2, (WINDOW_HEIGHT - 400) / 2, 400, 400 };
+        SDL_Rect square_area = { (WINDOW_WIDTH - 400) / 2, (WINDOW_HEIGHT - 400) / 2, 400, 400 };
 
-    // Set the background color for the square
-    SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, 255);
-    SDL_RenderFillRect(renderer, &square_area); // Draw the square
+        SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, 255);
+        SDL_RenderFillRect(renderer, &square_area); 
 
-    // Calculate the width and height of the title text
-    int title_width, title_height;
-    if (TTF_SizeText(font, title, &title_width, &title_height) == -1) {
-        // Handle error if the font size calculation fails
-        printf("Error calculating text size: %s\n", TTF_GetError());
-        return NULL;
-    }
+        int title_width, title_height;
+        if (TTF_SizeText(font, app->log->message, &title_width, &title_height) == -1) {
+                printf("Error calculating text size: %s\n", TTF_GetError());
+                return NULL;
+        }
 
-    // Create the title texture
-    SDL_Texture *title_texture = create_text_texture(renderer, font, title, text_color, background_color);
+        SDL_Texture *title_texture = create_text_texture(renderer, font, app->log->message, text_color, background_color);
 
-    // Position the title at the top-center of the square
-    SDL_Rect title_area = { 
-        square_area.x + (square_area.w - title_width) / 2, 
-        square_area.y, 
-        title_width, title_height 
-    };
+        SDL_Rect title_area = { 
+                square_area.x + (square_area.w - title_width) / 2, 
+                square_area.y, 
+                title_width, title_height 
+        };
 
-    // Render the title text at the top-center of the square
-    SDL_RenderCopy(renderer, title_texture, NULL, &title_area);
+        SDL_RenderCopy(renderer, title_texture, NULL, &title_area);
 
-    // Calculate the width and height of the message text
-    int message_width, message_height;
-    if (TTF_SizeText(font, message, &message_width, &message_height) == -1) {
-        // Handle error if the font size calculation fails
-        printf("Error calculating message size: %s\n", TTF_GetError());
-        return NULL;
-    }
+        int message_width, message_height;
+        if (TTF_SizeText(font, app->log->message, &message_width, &message_height) == -1) {
+                printf("Error calculating message size: %s\n", TTF_GetError());
+                return NULL;
+        }
 
-    // Create the message texture
-    SDL_Texture *message_texture = create_text_texture(renderer, font, message, text_color, background_color);
+        SDL_Texture *message_texture = create_text_texture(renderer, font, app->log->title, text_color, background_color);
 
-    // Position the message at the bottom-left of the square
-    SDL_Rect message_area = { 
-        square_area.x, 
-        square_area.y + square_area.h - message_height, 
-        message_width, message_height 
-    };
+        SDL_Rect message_area = { 
+                square_area.x, 
+                square_area.y + square_area.h - message_height, 
+                message_width, message_height 
+        };
 
-    // Render the message text at the bottom-left of the square
-    SDL_RenderCopy(renderer, message_texture, NULL, &message_area);
+        SDL_RenderCopy(renderer, message_texture, NULL, &message_area);
 
-    // Present the renderer
-    SDL_RenderPresent(renderer);
+        SDL_RenderPresent(renderer);
 
-    return title_texture;
+        return title_texture;
 }
 
 void draw_lines(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
@@ -199,12 +186,48 @@ void draw(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         /* draw_lines(renderer, font, app); */
         draw_path(renderer, font, app);
         draw_cursor(renderer, app);
-        char title[] = "title";
-        char message[] = "message";
-        draw_log(renderer, font, title, message, app);
+        /* draw_log(renderer, font, app); */
 
         /* if (term->log->message) { */
         /*         display_log(renderer, font, term->log->message, term); */
         /* } */
+        SDL_RenderPresent(renderer);
+}
+
+void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char *file_name_confirmation) {
+        char confirmation[] = "[Y]es [N]o";
+
+        SDL_Rect square_area = { (WINDOW_WIDTH - 350) / 2, (WINDOW_HEIGHT - 350) / 2, 350, 350 };
+
+        int confirm_width, confirm_height;
+        if (TTF_SizeText(font, confirmation, &confirm_width, &confirm_height) == -1) {
+                printf("Erorr calculating text size\n");
+                return;
+        }
+
+        SDL_Color background = { 255, 255, 255, 255 };
+        SDL_Color foreground = { 0, 0, 0, 255 };
+        SDL_Texture *confirm_texture = create_text_texture(renderer, font, confirmation, foreground, background);
+        SDL_Rect confirm_area = { 
+                square_area.x + (square_area.w - confirm_width) / 2, 
+                square_area.y + square_area.h - confirm_height,       
+                confirm_width, 
+                confirm_height 
+        };
+
+        int file_name_width, file_name_height;
+        if (TTF_SizeText(font, file_name_confirmation, &file_name_width, &file_name_height) == -1) {
+                printf("Erorr calculating text size\n");
+                return;
+        }
+
+        SDL_Texture *file_name_texture = create_text_texture(renderer, font, file_name_confirmation, foreground, background);
+        SDL_Rect file_name_area = { square_area.x, square_area.y, file_name_width, file_name_height };
+
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderFillRect(renderer, &square_area); 
+        SDL_RenderCopy(renderer, confirm_texture, NULL, &confirm_area);
+        SDL_RenderCopy(renderer, file_name_texture, NULL, &file_name_area);
+
         SDL_RenderPresent(renderer);
 }

@@ -41,6 +41,9 @@ int main(int argc, char *argv[]) {
         app->cursor->color.g = 0;
         app->cursor->color.b = 0;
 
+        app->log->title = strdup("title");
+        app->log->message = strdup("message");
+
         read_file(renderer, app);
         draw(renderer, font, app);
 
@@ -48,7 +51,6 @@ int main(int argc, char *argv[]) {
         int quit = 0;
         while (!quit) {
                 handle_events(&quit, e, app, renderer, font);
-                draw(renderer, font, app);
         }
 
         cleanup_SDL(window, renderer);

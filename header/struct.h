@@ -74,6 +74,7 @@ struct cursor {
 };
 
 struct log {
+        char *title;
         char *message;
         unsigned int timestamp;
         enum log_level log_level;

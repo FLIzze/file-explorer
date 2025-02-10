@@ -1,6 +1,7 @@
 #include "crud.h"
 #include "struct.h"
 #include "stdio.h"
+#include "input.h"
 #include <dirent.h>
 
 void read_file(SDL_Renderer *renderer, struct app *app) {
@@ -125,67 +126,74 @@ void read_directory_content(struct app *app) {
 /*         } */
 /* } */
 
-/* static int remove_callback(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) { */
-/*         int ret = remove(fpath); */ 
-/*         if (ret) { */
-/*                 perror(fpath); */
-/*         } */
-/*         return ret; */
-/* } */
+static int remove_callback(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
+        int ret = remove(fpath); 
+        if (ret) {
+                perror(fpath);
+        }
+        return ret;
+}
 
-/* static void delete_directory(char *path) { */
-/*         if (nftw(path, remove_callback, 64, FTW_DEPTH | FTW_PHYS) == -1) { */
-/*                 perror("Error deleting directory"); */
-/*         } else { */
-/*                 printf("Directory deleted successfully.\n"); */
-/*         } */
-/* } */
+static void delete_directory(char *path) {
+        if (nftw(path, remove_callback, 64, FTW_DEPTH | FTW_PHYS) == -1) {
+                perror("Error deleting directory");
+        } else {
+                printf("Directory deleted successfully.\n");
+        }
+}
 
-/* static void delete_file(char *path) { */
-/*         if (remove(path) == 0) { */
-/*                 printf("File deleted\n"); */
-/*         } else { */
-/*                 perror("Error deleting the file"); */
-/*         } */
-/* } */
+static void delete_file(char *path) {
+        if (remove(path) == 0) {
+                printf("File deleted\n");
+        } else {
+                perror("Error deleting the file");
+        }
+}
 
-/* int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *renderer, TTF_Font *font) { */
-/*         char *file_name = term->lines[term->current_line].segments[0].text; */
-/*         size_t new_path_len = strlen(term->path) + strlen(file_name) + 2; */ 
-/*         char *new_path = (char *)malloc(new_path_len); */
-/*         snprintf(new_path, new_path_len, "%s/%s", term->path, file_name); */
+int delete_content(struct app *app, SDL_Renderer *renderer, TTF_Font *font) {
+        char *file_name = app->file_list->file_entry[app->cursor->line + app->cursor->scroll].name;
+        size_t new_path_len = strlen(app->path) + strlen(file_name) + 2; 
+        char *new_path = (char *)malloc(new_path_len);
+        snprintf(new_path, new_path_len, "%s/%s", app->path, file_name);
 
-/*         if (!user_confirmation(renderer, font, file_name, term)) { */
-/*                 term->log->message = strdup("Aborting..."); */
-/*                 free(new_path); */
-/*                 return 0; */
-/*         } */
+        char delete_str[] = "DELETE";
+        size_t file_name_confirmation_len = strlen(file_name) + strlen(delete_str) + 2;
+        char *file_name_confirmation = (char *)malloc(file_name_confirmation_len);
+        snprintf(file_name_confirmation, file_name_confirmation_len, "%s %s ?", delete_str, file_name);
 
-/*         if (is_file(new_path)) { */
-/*                 delete_file(new_path); */
-/*         } else { */
-/*                 delete_directory(new_path); */
-/*         } */
+        if (!user_confirmation(renderer, font, app, file_name_confirmation)) {
+                printf("not deleted\n");
+                return 0;
+        } else {
+                printf("deleted\n");
+                return 0;
+        }
 
-/*         free(new_path); */
-/*         int previous_line = term->current_line; */
-/*         int previous_scroll = term->scroll; */
-/*         int total_line = term->total_line; */
-/*         char *previous_path = strdup(term->path); */
-/*         free_terminal(term); */
+        if (is_file(new_path)) {
+                delete_file(new_path);
+        } else {
+                delete_directory(new_path);
+        }
 
-/*         if (previous_line >= total_line - 1) { */
-/*                 term->current_line = previous_line - 1; */
-/*                 cursor->y -= (FONT_SIZE + FONT_SPACING_Y); */
-/*         } else { */
-/*                 term->current_line = previous_line; */
-/*         } */
+        /* free(new_path); */
+        /* int previous_line = term->current_line; */
+        /* int previous_scroll = term->scroll; */
+        /* int total_line = term->total_line; */
+        /* char *previous_path = strdup(term->path); */
+        /* free_terminal(term); */
 
-/*         term->scroll = previous_scroll; */
-/*         term->path = previous_path; */
-/*         term->log->message = strdup("Deleted"); */
-/*         return 1; */
-/* } */
+        /* if (previous_line >= total_line - 1) { */
+        /*         term->current_line = previous_line - 1; */
+        /*         cursor->y -= (FONT_SIZE + FONT_SPACING_Y); */
+        /* } else { */
+        /*         term->current_line = previous_line; */
+        /* } */
+
+        /* term->scroll = previous_scroll; */
+        /* term->path = previous_path; */
+        /* term->log->message = strdup("Deleted"); */
+        return 1;
+}
 
 /* int rename_directory(char *previous_path, char *new_path) { */
 /*         printf("%s - %s\n", previous_path, new_path); */

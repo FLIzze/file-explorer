@@ -15,7 +15,7 @@ SDL_Renderer* initialize_SDL(SDL_Window *window) {
                 return NULL;
         }
 
-        window = SDL_CreateWindow("SDL Window", 0, 0, 800, 600, SDL_WINDOW_SHOWN);
+        window = SDL_CreateWindow("SDL Window", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
         if (!window) {
                 fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
                 SDL_Quit();

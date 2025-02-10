@@ -2,8 +2,7 @@
 #include "draw.h"
 #include "config.h"
 #include "crud.h"
-/* #include "input.h" */
-/* #include "struct.h" */
+#include "input.h"
 
 void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *renderer, TTF_Font *font) {
         switch(e.key.keysym.sym) {
@@ -35,15 +34,16 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
                 /* scroll_to(0, cursor, term, 1); */
                 break;
         case SDLK_a: {
+                get_user_input(renderer, font, app);
                 /* handle_add_file(term, renderer, font, cursor); */
                 break; }
         case SDLK_r: 
                 /* handle_rename(term, renderer, font, cursor); */
                 break;
         case SDLK_x:
-                /* if (delete_content(term, cursor, renderer, font)) { */
-                /*         read_file(term, cursor, renderer, font); */
-                /* } */
+                if (delete_content(app, renderer, font)) {
+                        read_file(renderer, app);
+                }
                 break;
         case SDLK_d:
                 /* scroll_to(term->current_line + MAX_VISIBLE_LINE, cursor, term, 0); */
@@ -53,8 +53,8 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
                 break;
         default:
                 break;
-}
-draw(renderer, font, app);
+        }
+        draw(renderer, font, app);
 }
 
 void handle_events(int *quit, SDL_Event e, struct app *app, SDL_Renderer *renderer, TTF_Font *font)

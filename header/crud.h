@@ -12,9 +12,9 @@ void read_file(SDL_Renderer *renderer, struct app *app);
 void read_file_content(struct app *app);
 void read_directory_content(struct app *app);
 
-/* static void delete_directory(char *path, struct terminal *term); */
-/* static void delete_file(char *path, struct terminal *term); */
-/* int delete_content(struct terminal *term, struct cursor *cursor, SDL_Renderer *renderer, TTF_Font *font); */
+static void delete_directory(char *path);
+static void delete_file(char *path);
+int delete_content(struct app *app, SDL_Renderer *renderer, TTF_Font *font);
 
 /* void add_file(struct terminal *term, struct cursor *cursor, char *path); */
 /* void add_directory(struct terminal *term, struct cursor *cursor, char *path); */
