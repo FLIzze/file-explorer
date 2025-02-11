@@ -97,6 +97,7 @@ struct lines {
         size_t capacity;
 };
 
-void free_content(struct app *app);
+void free_app(struct app *app);
+struct app* ini_app();
 
 #endif

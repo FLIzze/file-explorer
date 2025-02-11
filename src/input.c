@@ -25,6 +25,7 @@ int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, struct app *app, c
 
 int get_user_input(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char *message) {
         SDL_Event event;
+        printf("%s\n", message);
         size_t original_size = strlen(message);
         
         free(app->input->text);
@@ -52,16 +53,19 @@ int get_user_input(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char
                                         draw_user_confirmation(renderer, font, full_message);
                                         break; }
                                 case SDLK_RETURN:
-                                        free(message);
                                         return 1;
                                 case SDLK_ESCAPE:
-                                        free(message);
                                         return 0;
                                 default: {
                                          char *user_input = app->input->text;
                                          char to_ascii = (char)event.key.keysym.sym;
                                          size_t new_length = strlen(user_input) + 2;
                                          user_input = (char *)realloc(user_input, new_length);
+                                         if (!user_input) {
+                                                 fprintf(stderr, "Memory alocation failed for user_input\n");
+                                                 return -1;
+                                         }
+
                                          user_input[new_length - 2] = to_ascii;
                                          user_input[new_length - 1] = '\0';
 

@@ -5,7 +5,7 @@
 #include <dirent.h>
 
 void read_file(SDL_Renderer *renderer, struct app *app) {
-        free_content(app);
+        free_app(app);
         if (is_file(app->path) == 1) {
                 app->mode = TEXT_EDITOR;
                 read_file_content(app);
@@ -90,7 +90,7 @@ void read_directory_content(struct app *app) {
         closedir(d);
 }
 
-static void add_file(struct terminal *term, struct cursor *cursor, char *path) {
+static void add_file(char *path) {
         FILE *new_file = fopen(path, "w");
         if (new_file == NULL) {
                 perror("Error creating file");
@@ -98,7 +98,7 @@ static void add_file(struct terminal *term, struct cursor *cursor, char *path) {
         fclose(new_file);
 }
 
-static void add_directory(struct terminal *term, struct cursor *cursor, char *path) {
+static void add_directory(char *path) {
         if (mkdir(path, 0700) == -1) {
                 perror("Error creating file directory");
         }
@@ -190,7 +190,26 @@ int handle_rename(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
 }
 
 int handle_add(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
-        char message[] = "ADD";
-        get_user_input(renderer, font, app, message);
-        return 0;
+        char buffer[] = "ADD ";
+        size_t message_len = strlen(buffer) + 1;
+        char *message = (char *)malloc(message_len);
+        strcpy(message, buffer);
+
+        if (!get_user_input(renderer, font, app, message)) {
+                return 0;
+        }
+
+        printf("%s %s\n", app->path, app->input->text);
+        /* size_t full_path_len_yes = strlen(app->path) + strlen(app->input->text) + 2; */
+        /* char *full_path = (char *)malloc(1); */
+        /* snprintf(full_path, full_path_len, "%s%s", app->path, app->input->text); */
+        /* printf("%s\n", full_path); */
+
+        /* add_file(full_path); */
+        /* if (is_file(app->path)) { */
+        /* } else { */
+        /*         add_directory(app->path); */
+        /* } */
+
+        return 1;
 }

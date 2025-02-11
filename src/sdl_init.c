@@ -3,7 +3,7 @@
 #include "config.h"
 #include "sdl_init.h"
 
-SDL_Renderer* initialize_SDL(SDL_Window *window) {
+SDL_Renderer* initialize_SDL(SDL_Window **window) {
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
                 fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
                 return NULL;
@@ -15,33 +15,22 @@ SDL_Renderer* initialize_SDL(SDL_Window *window) {
                 return NULL;
         }
 
-        window = SDL_CreateWindow("SDL Window", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-        if (!window) {
+        *window = SDL_CreateWindow("SDL Window", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+        if (!*window) {
                 fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
                 SDL_Quit();
                 return NULL;
         }
 
-        SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        SDL_Renderer *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED);
         if (!renderer) {
                 fprintf(stderr, "Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-                SDL_DestroyWindow(window);
+                SDL_DestroyWindow(*window);
                 SDL_Quit();
                 return NULL;
         }
 
         return renderer;
-}
-
-void cleanup_SDL(SDL_Window *window, SDL_Renderer *renderer) {
-        if (renderer) {
-                SDL_DestroyRenderer(renderer);
-        }
-        if (window) {
-                SDL_DestroyWindow(window);
-        }
-        TTF_Quit();
-        SDL_Quit();
 }
 
 TTF_Font* initialize_font() {
@@ -51,4 +40,18 @@ TTF_Font* initialize_font() {
                 return NULL;
         }
         return font;
+}
+
+void cleanup_SDL(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font) {
+        if (font) {
+                TTF_CloseFont(font);
+        }
+        if (renderer) {
+                SDL_DestroyRenderer(renderer);
+        }
+        if (window) {
+                SDL_DestroyWindow(window);
+        }
+        TTF_Quit();
+        SDL_Quit();
 }

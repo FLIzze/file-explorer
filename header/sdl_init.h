@@ -4,8 +4,8 @@
 #include <SDL_ttf.h>
 #include <SDL.h>
 
-SDL_Renderer* initialize_SDL(SDL_Window *window);
-void cleanup_SDL(SDL_Window *window, SDL_Renderer *renderer);
+SDL_Renderer* initialize_SDL(SDL_Window **window);
+void cleanup_SDL(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font);
 TTF_Font* initialize_font();
 
 #endif

@@ -131,25 +131,3 @@ void goback_directory(struct app *app) {
                 }
         }
 }
-
-/* void handle_add_file(struct terminal *term, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor) { */
-/*         if (!user_text_input(term, renderer, font, cursor)) { */
-/*                 return; */
-/*         } */
-
-/*         size_t full_path_len = strlen(term->path) + strlen(term->user_input->text) + 2; */
-/*         char *full_path = (char *)malloc(full_path_len); */
-/*         snprintf(full_path, full_path_len, "%s/%s", term->path, term->user_input->text); */
-/*         if (term->user_input->text[term->user_input->size - 1] == '/') { */
-/*                 add_directory(term, cursor, full_path); */
-/*         } else { */
-/*                 add_file(term, cursor, full_path); */
-/*         } */
-
-/*         char *current_path = strdup(term->path); */
-/*         free_terminal(term); */
-/*         term->path = current_path; */
-/*         cursor->y = 0; */
-/*         term->log->message = full_path; */
-/*         read_file(term, cursor, renderer, font); */
-/* } */
