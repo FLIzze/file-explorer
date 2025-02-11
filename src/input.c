@@ -26,7 +26,9 @@ int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, struct app *app, c
 int get_user_input(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char *message) {
         SDL_Event event;
         size_t original_size = strlen(message);
-
+        
+        free(app->input->text);
+        app->input->text = strdup("");
         draw_user_confirmation(renderer, font, message);
 
         while (1) {
@@ -36,54 +38,42 @@ int get_user_input(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char
                                 return 0;
                         } else if (event.type == SDL_KEYDOWN) {
                                 switch(event.key.keysym.sym) {
-                                case SDLK_BACKSPACE:
-                                        if (strlen(message) > 0 && strlen(message) > original_size) {
-                                                message[strlen(message) - 1] = '\0';
+                                case SDLK_BACKSPACE: {
+                                        char *user_input = app->input->text;
+                                        if (strlen(user_input) <= 0) {
+                                                break;
                                         }
-                                        draw_user_confirmation(renderer, font, message);
-                                        break;
+
+                                        user_input[strlen(user_input) - 1] = '\0';
+                                        size_t full_message_length = strlen(user_input) + strlen(message) + 1;
+                                        char *full_message = (char *)malloc(full_message_length);
+
+                                        snprintf(full_message, full_message_length, "%s%s", message, user_input);
+                                        draw_user_confirmation(renderer, font, full_message);
+                                        break; }
                                 case SDLK_RETURN:
-                                        app->input->text = strdup(message);
                                         free(message);
                                         return 1;
                                 case SDLK_ESCAPE:
                                         free(message);
                                         return 0;
                                 default: {
+                                         char *user_input = app->input->text;
                                          char to_ascii = (char)event.key.keysym.sym;
+                                         size_t new_length = strlen(user_input) + 2;
+                                         user_input = (char *)realloc(user_input, new_length);
+                                         user_input[new_length - 2] = to_ascii;
+                                         user_input[new_length - 1] = '\0';
 
-                                         size_t new_length = strlen(message) + 2; 
-                                         char *new_input = (char *)realloc(message, new_length);
-
-                                         if (!new_input) {
-                                                 fprintf(stderr, "Memory allocation failed for new_input\n");
-                                                 free(message);
-                                                 return 0;
-                                         }
-
-                                         message = new_input;
-                                         message[new_length - 2] = to_ascii; 
-                                         message[new_length - 1] = '\0';    
-
-                                         if (app->input->text) {
-                                                 free(app->input->text);
-                                         }
-                                         app->input->text = strdup(message);
-
-                                         if (!app->input->text) {
-                                                 fprintf(stderr, "Memory allocation failed for app->input->text\n");
-                                                 free(message);
-                                                 return 1;
-                                         }
-
-                                         draw_user_confirmation(renderer, font, message);
+                                         size_t full_message_length = strlen(user_input) + strlen(message) + 1;
+                                         char *full_message; 
+                                         snprintf(full_message, full_message_length, "%s%s", message, user_input);
+                                         draw_user_confirmation(renderer, font, full_message);
                                          break;
                                          }
                                 }
                         }
                 }
         }
-
-        free(message);
         return 1;
 }

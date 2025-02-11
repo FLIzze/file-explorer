@@ -168,7 +168,10 @@ int handle_rename(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         size_t message_len = strlen(message) + strlen(file_name) + 6;
         char *full_message = (char *)malloc(message_len);
         snprintf(full_message, message_len, "%s %s -> ", message, file_name);
-        get_user_input(renderer, font, app, full_message);
+
+        if (!get_user_input(renderer, font, app, full_message)) {
+                return 0;
+        }
 
         size_t previous_path_len = strlen(app->path) + strlen(file_name) + 2; 
         size_t new_path_len = strlen(app->path) + strlen(app->input->text) + 2; 
