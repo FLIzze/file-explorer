@@ -1,9 +1,5 @@
 #include "struct.h"
 #include "struct.h"
-/* #include "display.h" */
-/* #include <stdlib.h> */
-/* #include <stdio.h> */
-/* #include <string.h> */
 
 void free_app(struct app *app) {
         for (int i = 0; i < app->file_list->count; i++) {
@@ -23,6 +19,18 @@ void free_app(struct app *app) {
         free(app->path);
 
         free(app);
+}
+
+void free_app_content(struct app *app) {
+        for (int i = 0; i < app->file_list->count; i++) {
+                free(app->file_list->file_entry[i].name);
+        }
+
+        app->file_list->count = 0;
+        app->file_list->capacity = 0;
+
+        app->cursor->line = 0;
+        app->cursor->scroll = 0;
 }
 
 struct app* ini_app() {

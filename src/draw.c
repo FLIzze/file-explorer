@@ -179,21 +179,6 @@ void draw_cursor(SDL_Renderer *renderer, struct app *app) {
         /* SDL_RenderFillRect(renderer, &rect); */
 }
 
-void draw(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
-        SDL_RenderClear(renderer);
-        draw_explorer_content(renderer, font, app);
-        /* draw_lines(renderer, font, app); */
-        draw_path(renderer, font, app);
-        draw_cursor(renderer, app);
-        /* draw_log(renderer, font, app); */
-
-        /* if (term->log->message) { */
-        /*         display_log(renderer, font, term->log->message, term); */
-        /* } */
-        SDL_RenderPresent(renderer);
-}
-
 void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char *file_name_confirmation) {
         char confirmation[] = "[Y]es [N]o";
 
@@ -229,5 +214,20 @@ void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char *file_n
         SDL_RenderCopy(renderer, confirm_texture, NULL, &confirm_area);
         SDL_RenderCopy(renderer, file_name_texture, NULL, &file_name_area);
 
+        SDL_RenderPresent(renderer);
+}
+
+void draw(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+        SDL_RenderClear(renderer);
+        draw_explorer_content(renderer, font, app);
+        /* draw_lines(renderer, font, app); */
+        draw_path(renderer, font, app);
+        draw_cursor(renderer, app);
+        /* draw_log(renderer, font, app); */
+
+        /* if (term->log->message) { */
+        /*         display_log(renderer, font, term->log->message, term); */
+        /* } */
         SDL_RenderPresent(renderer);
 }

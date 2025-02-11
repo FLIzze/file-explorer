@@ -5,7 +5,7 @@
 #include <dirent.h>
 
 void read_file(SDL_Renderer *renderer, struct app *app) {
-        free_app(app);
+        free_app_content(app);
         if (is_file(app->path) == 1) {
                 app->mode = TEXT_EDITOR;
                 read_file_content(app);

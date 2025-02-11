@@ -10,14 +10,14 @@ int main(int argc, char *argv[]) {
         TTF_Font *font = initialize_font();
         struct app *app = ini_app();
 
-        /* read_file(renderer, app); */
-        /* draw(renderer, font, app); */
+        read_file(renderer, app);
+        draw(renderer, font, app);
 
-        /* SDL_Event e; */
-        /* int quit = 0; */
-        /* while (!quit) { */
-        /*         handle_events(&quit, e, app, renderer, font); */
-        /* } */
+        SDL_Event e;
+        int quit = 0;
+        while (!quit) {
+                handle_events(&quit, e, app, renderer, font);
+        }
 
         cleanup_SDL(window, renderer, font);
         free_app(app);

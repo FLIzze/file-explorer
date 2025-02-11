@@ -98,6 +98,7 @@ struct lines {
 };
 
 void free_app(struct app *app);
+void free_app_content(struct app *app);
 struct app* ini_app();
 
 #endif

@@ -108,9 +108,11 @@ void goto_directory(struct app *app) {
         char *new_path = (char *)malloc(new_path_len);
         if (!new_path) {
                 fprintf(stderr, "Memory allocation for new_path failed\n");
+                return;
         }
 
         snprintf(new_path, new_path_len, "%s/%s", current_path, selected_file);
+        free(app->path);
         app->path = strdup(new_path);
         free(new_path);
 }
@@ -125,8 +127,10 @@ void goback_directory(struct app *app) {
                         }
 
                         strncpy(new_path, app->path, i);
-                        app->path = new_path;
                         new_path[i] = '\0';
+                        free(app->path);
+                        app->path = strdup(new_path);
+                        free(new_path);
                         return;
                 }
         }

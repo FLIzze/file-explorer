@@ -25,10 +25,8 @@ int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, struct app *app, c
 
 int get_user_input(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char *message) {
         SDL_Event event;
-        printf("%s\n", message);
         size_t original_size = strlen(message);
         
-        free(app->input->text);
         app->input->text = strdup("");
         draw_user_confirmation(renderer, font, message);
 
