@@ -2,6 +2,7 @@
 #include "draw.h"
 #include "config.h"
 #include "crud.h"
+#include "input.h"
 
 void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *renderer, TTF_Font *font) {
         switch(e.key.keysym.sym) {
@@ -26,9 +27,11 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
         case SDLK_h:
                 scroll_to(0, -1, app, 1);
                 break;
-        case SDLK_e:
+        case SDLK_e: {
+                char message[] = "test";
+                get_user_input(renderer, font, app, message);
                 /* scroll_to(term->total_line - 1, cursor, term, 1); */
-                break;
+                break; }
         case SDLK_b:
                 /* scroll_to(0, cursor, term, 1); */
                 break;
@@ -41,6 +44,7 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
                 if (handle_rename(renderer, font, app)) {
                         read_file(renderer, app);
                 }
+                free(app->input->text);
                 break;
         case SDLK_x:
                 if (handle_delete(renderer, font, app)) {

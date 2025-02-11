@@ -223,7 +223,7 @@ void draw(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         draw_explorer_content(renderer, font, app);
         /* draw_lines(renderer, font, app); */
         draw_path(renderer, font, app);
-        draw_cursor(renderer, app);
+        /* draw_cursor(renderer, app); */
         /* draw_log(renderer, font, app); */
 
         /* if (term->log->message) { */

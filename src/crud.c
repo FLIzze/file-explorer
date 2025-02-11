@@ -140,6 +140,8 @@ int handle_delete(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         snprintf(file_name_confirmation, file_name_confirmation_len, "%s %s ?", delete_str, file_name);
 
         if (!user_confirmation(renderer, font, app, file_name_confirmation)) {
+                free(new_path);
+                free(file_name_confirmation);
                 return 0;
         }
 
@@ -149,11 +151,13 @@ int handle_delete(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
                 delete_directory(new_path);
         }
 
+        free(new_path);
+        free(file_name_confirmation);
+
         return 1;
 }
 
 static int rename_directory(char *previous_path, char *new_path) {
-        printf("%s - %s\n", previous_path, new_path);
         if (rename(previous_path, new_path) != 0) {
                 fprintf(stderr, "couldnt rename\n");
                 return 0;
@@ -167,6 +171,10 @@ int handle_rename(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         char *file_name = app->file_list->file_entry[app->cursor->line].name;
         size_t message_len = strlen(message) + strlen(file_name) + 6;
         char *full_message = (char *)malloc(message_len);
+        if (!full_message) {
+                fprintf(stderr, "Memory allocation failed for full_message\n");
+                return -1;
+        }
         snprintf(full_message, message_len, "%s %s -> ", message, file_name);
 
         if (!get_user_input(renderer, font, app, full_message)) {
@@ -177,14 +185,29 @@ int handle_rename(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         size_t new_path_len = strlen(app->path) + strlen(app->input->text) + 2; 
 
         char *previous_path = (char *)malloc(previous_path_len); 
+        if (!previous_path) {
+                fprintf(stderr, "Memory allocation failed for previous_path\n");
+                return -1;
+        }
         char *new_path = (char *)malloc (new_path_len); 
+        if (!new_path)  {
+                fprintf(stderr, "Memory allocation failed for new_path\n");
+                return -1;
+        }
 
         snprintf(previous_path, previous_path_len, "%s/%s", app->path, file_name);
         snprintf(new_path, new_path_len, "%s/%s", app->path, app->input->text);
 
         if (!rename_directory(previous_path, new_path)) {
+                free(full_message);
+                free(previous_path);
+                free(new_path);
                 return 0;
         }
+
+        free(full_message);
+        free(previous_path);
+        free(new_path);
 
         return 1;
 }
