@@ -82,8 +82,6 @@ struct log {
 
 struct user_input {
         char *text;
-        size_t count;
-        size_t capacity;
 };
 
 struct text_segment {

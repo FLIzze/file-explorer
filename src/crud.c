@@ -26,28 +26,6 @@ int is_file(char *path) {
         return S_ISREG(file_stat.st_mode);  
 }
 
-/* static void add_line_to_terminal(struct terminal *term, char *text, struct rgb color) { */
-/*         struct line new_line; */
-/*         new_line.segment_count = 1; */
-/*         new_line.segments = (struct text_segment *)malloc(sizeof(struct text_segment)); */
-
-/*         if (!new_line.segments) { */
-/*                 fprintf(stderr, "Memory allocation failed for line segment\n"); */
-/*                 return; */
-/*         } */
-
-/*         new_line.segments[0].text = strdup(text); */ 
-/*         if (!new_line.segments[0].text) { */
-/*                 fprintf(stderr, "Memory allocation failed for line text\n"); */
-/*                 free(new_line.segments); */
-/*                 return; */
-/*         } */
-
-/*         new_line.segments[0].is_cached = 0; */
-/*         new_line.segments[0].color = color; */
-/*         add_line(term, new_line); */ 
-/* } */
-
 void read_file_content(struct app *app) {
         /* FILE *file = fopen(term->path, "r"); */
         /* if (file == NULL) { */
@@ -112,19 +90,19 @@ void read_directory_content(struct app *app) {
         closedir(d);
 }
 
-/* void add_file(struct terminal *term, struct cursor *cursor, char *path) { */
-/*         FILE *new_file = fopen(path, "w"); */
-/*         if (new_file == NULL) { */
-/*                 perror("Error creating file"); */
-/*         } */
-/*         fclose(new_file); */
-/* } */
+static void add_file(struct terminal *term, struct cursor *cursor, char *path) {
+        FILE *new_file = fopen(path, "w");
+        if (new_file == NULL) {
+                perror("Error creating file");
+        }
+        fclose(new_file);
+}
 
-/* void add_directory(struct terminal *term, struct cursor *cursor, char *path) { */
-/*         if (mkdir(path, 0700) == -1) { */
-/*                 term->log->message = strdup("error creating directory"); */
-/*         } */
-/* } */
+static void add_directory(struct terminal *term, struct cursor *cursor, char *path) {
+        if (mkdir(path, 0700) == -1) {
+                perror("Error creating file directory");
+        }
+}
 
 static int remove_callback(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
         int ret = remove(fpath); 
@@ -150,7 +128,7 @@ static void delete_file(char *path) {
         }
 }
 
-int delete_content(struct app *app, SDL_Renderer *renderer, TTF_Font *font) {
+int handle_delete(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         char *file_name = app->file_list->file_entry[app->cursor->line + app->cursor->scroll].name;
         size_t new_path_len = strlen(app->path) + strlen(file_name) + 2; 
         char *new_path = (char *)malloc(new_path_len);
@@ -162,10 +140,6 @@ int delete_content(struct app *app, SDL_Renderer *renderer, TTF_Font *font) {
         snprintf(file_name_confirmation, file_name_confirmation_len, "%s %s ?", delete_str, file_name);
 
         if (!user_confirmation(renderer, font, app, file_name_confirmation)) {
-                printf("not deleted\n");
-                return 0;
-        } else {
-                printf("deleted\n");
                 return 0;
         }
 
@@ -175,31 +149,45 @@ int delete_content(struct app *app, SDL_Renderer *renderer, TTF_Font *font) {
                 delete_directory(new_path);
         }
 
-        /* free(new_path); */
-        /* int previous_line = term->current_line; */
-        /* int previous_scroll = term->scroll; */
-        /* int total_line = term->total_line; */
-        /* char *previous_path = strdup(term->path); */
-        /* free_terminal(term); */
-
-        /* if (previous_line >= total_line - 1) { */
-        /*         term->current_line = previous_line - 1; */
-        /*         cursor->y -= (FONT_SIZE + FONT_SPACING_Y); */
-        /* } else { */
-        /*         term->current_line = previous_line; */
-        /* } */
-
-        /* term->scroll = previous_scroll; */
-        /* term->path = previous_path; */
-        /* term->log->message = strdup("Deleted"); */
         return 1;
 }
 
-/* int rename_directory(char *previous_path, char *new_path) { */
-/*         printf("%s - %s\n", previous_path, new_path); */
-/*         if (rename(previous_path, new_path) != 0) { */
-/*                 fprintf(stderr, "couldnt rename\n"); */
-/*                 return 0; */
-/*         } */
-/*         return 1; */
-/* } */
+static int rename_directory(char *previous_path, char *new_path) {
+        printf("%s - %s\n", previous_path, new_path);
+        if (rename(previous_path, new_path) != 0) {
+                fprintf(stderr, "couldnt rename\n");
+                return 0;
+        }
+
+        return 1;
+}
+
+int handle_rename(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
+        char message[] = "RENAME";
+        char *file_name = app->file_list->file_entry[app->cursor->line].name;
+        size_t message_len = strlen(message) + strlen(file_name) + 6;
+        char *full_message = (char *)malloc(message_len);
+        snprintf(full_message, message_len, "%s %s -> ", message, file_name);
+        get_user_input(renderer, font, app, full_message);
+
+        size_t previous_path_len = strlen(app->path) + strlen(file_name) + 2; 
+        size_t new_path_len = strlen(app->path) + strlen(app->input->text) + 2; 
+
+        char *previous_path = (char *)malloc(previous_path_len); 
+        char *new_path = (char *)malloc (new_path_len); 
+
+        snprintf(previous_path, previous_path_len, "%s/%s", app->path, file_name);
+        snprintf(new_path, new_path_len, "%s/%s", app->path, app->input->text);
+
+        if (!rename_directory(previous_path, new_path)) {
+                return 0;
+        }
+
+        return 1;
+}
+
+int handle_add(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
+        char message[] = "ADD";
+        get_user_input(renderer, font, app, message);
+        return 0;
+}

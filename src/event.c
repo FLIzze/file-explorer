@@ -2,7 +2,6 @@
 #include "draw.h"
 #include "config.h"
 #include "crud.h"
-#include "input.h"
 
 void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *renderer, TTF_Font *font) {
         switch(e.key.keysym.sym) {
@@ -34,14 +33,17 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
                 /* scroll_to(0, cursor, term, 1); */
                 break;
         case SDLK_a: {
-                get_user_input(renderer, font, app);
-                /* handle_add_file(term, renderer, font, cursor); */
+                if (handle_add(renderer, font, app)) {
+                        read_file(renderer, app);
+                }
                 break; }
         case SDLK_r: 
-                /* handle_rename(term, renderer, font, cursor); */
+                if (handle_rename(renderer, font, app)) {
+                        read_file(renderer, app);
+                }
                 break;
         case SDLK_x:
-                if (delete_content(app, renderer, font)) {
+                if (handle_delete(renderer, font, app)) {
                         read_file(renderer, app);
                 }
                 break;
@@ -149,33 +151,5 @@ void goback_directory(struct app *app) {
 /*         term->path = current_path; */
 /*         cursor->y = 0; */
 /*         term->log->message = full_path; */
-/*         read_file(term, cursor, renderer, font); */
-/* } */
-
-/* void handle_rename(struct terminal *term, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor) { */
-/*         if (!user_text_input(term, renderer, font, cursor)) { */
-/*                 return; */
-/*         } */
-/*         char *file_name = term->lines[term->current_line].segments[0].text; */
-
-/*         size_t previous_path_len = strlen(term->path) + strlen(file_name) + 2; */ 
-/*         size_t new_path_len = strlen(term->path) + strlen(term->user_input->text) + 2; */ 
-
-/*         char *previous_path = (char *)malloc(previous_path_len); */
-/*         char *new_path = (char *)malloc (new_path_len); */
-
-/*         snprintf(previous_path, previous_path_len, "%s/%s", term->path, file_name); */
-/*         snprintf(new_path, new_path_len, "%s/%s", term->path, term->user_input->text); */
-
-/*         if (!rename_directory(previous_path, new_path)) { */
-/*                 term->log->message = strdup("couldnt rename"); */
-/*                 return; */
-/*         } */
-
-/*         char *current_path = strdup(term->path); */
-/*         free_terminal(term); */
-/*         term->path = current_path; */
-/*         cursor->y = 0; */
-/*         term->log->message = new_path; */
 /*         read_file(term, cursor, renderer, font); */
 /* } */

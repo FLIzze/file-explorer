@@ -197,7 +197,7 @@ void draw(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
 void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char *file_name_confirmation) {
         char confirmation[] = "[Y]es [N]o";
 
-        SDL_Rect square_area = { (WINDOW_WIDTH - 350) / 2, (WINDOW_HEIGHT - 350) / 2, 350, 350 };
+        SDL_Rect square_area = { (WINDOW_WIDTH - 500) / 2, (WINDOW_HEIGHT - 500) / 2, 500, 500 };
 
         int confirm_width, confirm_height;
         if (TTF_SizeText(font, confirmation, &confirm_width, &confirm_height) == -1) {
@@ -205,8 +205,8 @@ void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char *file_n
                 return;
         }
 
-        SDL_Color background = { 255, 255, 255, 255 };
-        SDL_Color foreground = { 0, 0, 0, 255 };
+        SDL_Color background = { 0, 0, 0, 255 };
+        SDL_Color foreground = { 255, 255, 255, 255 };
         SDL_Texture *confirm_texture = create_text_texture(renderer, font, confirmation, foreground, background);
         SDL_Rect confirm_area = { 
                 square_area.x + (square_area.w - confirm_width) / 2, 
@@ -224,7 +224,7 @@ void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char *file_n
         SDL_Texture *file_name_texture = create_text_texture(renderer, font, file_name_confirmation, foreground, background);
         SDL_Rect file_name_area = { square_area.x, square_area.y, file_name_width, file_name_height };
 
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderFillRect(renderer, &square_area); 
         SDL_RenderCopy(renderer, confirm_texture, NULL, &confirm_area);
         SDL_RenderCopy(renderer, file_name_texture, NULL, &file_name_area);
