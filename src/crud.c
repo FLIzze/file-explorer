@@ -213,26 +213,33 @@ int handle_rename(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
 }
 
 int handle_add(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
-        char buffer[] = "ADD ";
-        size_t message_len = strlen(buffer) + 1;
-        char *message = (char *)malloc(message_len);
-        strcpy(message, buffer);
-
-        if (!get_user_input(renderer, font, app, message)) {
-                return 0;
+        char *buffer = strdup("ADD ");
+        if (!buffer) {
+                fprintf(stderr, "Memory allocation failed for message\n");
+                return -1;
         }
 
-        printf("%s %s\n", app->path, app->input->text);
-        /* size_t full_path_len_yes = strlen(app->path) + strlen(app->input->text) + 2; */
-        /* char *full_path = (char *)malloc(1); */
-        /* snprintf(full_path, full_path_len, "%s%s", app->path, app->input->text); */
-        /* printf("%s\n", full_path); */
+        if (!get_user_input(renderer, font, app, buffer)) {
+                free(buffer);
+                return 0;
+        }
+        free(buffer);
 
-        /* add_file(full_path); */
-        /* if (is_file(app->path)) { */
-        /* } else { */
-        /*         add_directory(app->path); */
-        /* } */
+        size_t full_path_len = strlen(app->path) + strlen(app->input->text) + 2;
+        char *full_path = (char *)malloc(full_path_len);
+        if (!full_path) {
+                fprintf(stderr, "Memory allocation failed for full_path\n");
+                return -1;
+        }
+
+        snprintf(full_path, full_path_len, "%s/%s", app->path, app->input->text);
+
+        if (full_path[full_path_len - 2] == '/') {
+                add_directory(full_path);
+        } else {
+                add_file(full_path);
+        }
+        free(full_path);
 
         return 1;
 }

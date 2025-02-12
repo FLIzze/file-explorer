@@ -75,8 +75,8 @@ SDL_Texture* draw_log(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         };
 
         SDL_RenderCopy(renderer, message_texture, NULL, &message_area);
-
         SDL_RenderPresent(renderer);
+        SDL_DestroyTexture(message_texture);
 
         return title_texture;
 }
@@ -98,11 +98,10 @@ void draw_lines(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
 
                 SDL_QueryTexture(texture, NULL, NULL, &location.w, &location.h);
                 SDL_RenderCopy(renderer, texture, NULL, &location);
+                SDL_DestroyTexture(texture);
 
                 position_y += LINE_HEIGHT;
         }
-
-        SDL_DestroyTexture(texture);
 }
 
 SDL_Texture* create_text_texture(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color fg, SDL_Color bg) {
@@ -213,6 +212,9 @@ void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char *file_n
         SDL_RenderFillRect(renderer, &square_area); 
         SDL_RenderCopy(renderer, confirm_texture, NULL, &confirm_area);
         SDL_RenderCopy(renderer, file_name_texture, NULL, &file_name_area);
+
+        SDL_DestroyTexture(confirm_texture);
+        SDL_DestroyTexture(file_name_texture);
 
         SDL_RenderPresent(renderer);
 }

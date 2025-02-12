@@ -12,7 +12,7 @@
 #define FONT_SPACING_Y 5
 #define FONT_SPACING_X 15
 
-#define LINE_WIDTH 100
+#define LINE_WIDTH 60
 #define LINE_OFFSET 1
 #define LOG_DELAY 2
 

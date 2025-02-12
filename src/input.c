@@ -2,7 +2,8 @@
 #include "struct.h"
 #include "draw.h"
 
-int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char *file_name_confirmation) {
+int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, 
+                        struct app *app, char *file_name_confirmation) {
         SDL_Event event;
 
         draw_user_confirmation(renderer, font, file_name_confirmation);
@@ -33,7 +34,6 @@ static void handle_backspace(SDL_Renderer *renderer, TTF_Font *font, struct app 
                 char *full_message = (char *)malloc(full_message_length);
                 if (!full_message) {
                         fprintf(stderr, "Memory allocation failed for full_message\n");
-                        free(app->input->text);
                         return;
                 }
 
@@ -43,14 +43,14 @@ static void handle_backspace(SDL_Renderer *renderer, TTF_Font *font, struct app 
         }
 }
 
-static void handle_default_key(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char *message, SDL_Event event) {
+static void handle_default_key(SDL_Renderer *renderer, TTF_Font *font, 
+                                struct app *app, char *message, SDL_Event event) {
         char to_ascii = (char)event.key.keysym.sym;
 
         size_t new_length = strlen(app->input->text) + 2;
         char *new_user_input = (char *)realloc(app->input->text, new_length);
         if (!new_user_input) {
                 fprintf(stderr, "Memory reallocation failed for user_input\n");
-                free(app->input->text);
                 return;
         }
 
@@ -62,7 +62,6 @@ static void handle_default_key(SDL_Renderer *renderer, TTF_Font *font, struct ap
         char *full_message = (char *)malloc(full_message_length);
         if (!full_message) {
                 fprintf(stderr, "Memory allocation failed for full_message\n");
-                free(app->input->text);
                 return;
         }
 
@@ -86,7 +85,7 @@ int get_user_input(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char
         while (1) {
                 while (SDL_PollEvent(&event)) {
                         if (event.type == SDL_QUIT) {
-                                free(app->input->text); 
+                                free(app->input->text);
                                 return 0;
                         } else if (event.type == SDL_KEYDOWN) {
                                 switch (event.key.keysym.sym) {

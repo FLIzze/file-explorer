@@ -2,7 +2,6 @@
 #include "draw.h"
 #include "config.h"
 #include "crud.h"
-#include "input.h"
 
 void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *renderer, TTF_Font *font) {
         switch(e.key.keysym.sym) {
@@ -16,35 +15,39 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
                 read_file(renderer, app);
                 break;
         case SDLK_j:
-                scroll_to(1, 0, app, 1);
+                scroll_to(1, 0, app);
                 break;
         case SDLK_k:
-                scroll_to(-1, 0, app, 1);
+                scroll_to(-1, 0, app);
                 break;
         case SDLK_l: 
-                scroll_to(0, 1, app, 1);
+                scroll_to(0, 1, app);
                 break;
         case SDLK_h:
-                scroll_to(0, -1, app, 1);
+                scroll_to(0, -1, app);
                 break;
-        case SDLK_e: {
-                char message[] = "test";
-                get_user_input(renderer, font, app, message);
-                /* scroll_to(term->total_line - 1, cursor, term, 1); */
-                break; }
+        case SDLK_e: 
+                if (app->file_list->count <= MAX_VISIBLE_LINE) {
+                        app->cursor->line = app->file_list->count - 1;
+                        app->cursor->scroll = 0; 
+                } else {
+                        app->cursor->scroll = app->file_list->count - MAX_VISIBLE_LINE;
+                        app->cursor->line = app->file_list->count - app->cursor->scroll;
+                }
+                break;
         case SDLK_b:
-                /* scroll_to(0, cursor, term, 1); */
+                app->cursor->line = 0;
+                app->cursor->scroll = 0;
                 break;
-        case SDLK_a: {
+        case SDLK_a: 
                 if (handle_add(renderer, font, app)) {
                         read_file(renderer, app);
                 }
-                break; }
+                break; 
         case SDLK_r: 
                 if (handle_rename(renderer, font, app)) {
                         read_file(renderer, app);
                 }
-                free(app->input->text);
                 break;
         case SDLK_x:
                 if (handle_delete(renderer, font, app)) {
@@ -52,10 +55,10 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
                 }
                 break;
         case SDLK_d:
-                /* scroll_to(term->current_line + MAX_VISIBLE_LINE, cursor, term, 0); */
+                scroll_to(MAX_VISIBLE_LINE, 0, app);
                 break;
         case SDLK_u:
-                /* scroll_to(term->current_line - MAX_VISIBLE_LINE, cursor, term, 0); */
+                scroll_to(-MAX_VISIBLE_LINE, 0, app);
                 break;
         default:
                 break;
@@ -79,14 +82,14 @@ void handle_events(int *quit, SDL_Event e, struct app *app, SDL_Renderer *render
         }
 }
 
-void scroll_to(int line_increment, int column_increment, struct app *app, int move_cursor) { 
+void scroll_to(int line_increment, int column_increment, struct app *app) { 
         int end_line = app->file_list->count <= MAX_VISIBLE_LINE ?
                 app->file_list->count : MAX_VISIBLE_LINE;
         int current_line = app->cursor->line + line_increment;
 
         if (app->mode == FILE_EXPLORER) {
                 if (current_line >= end_line) {
-                        if (current_line + app->cursor->scroll >= app->file_list->count) {
+                        if (current_line + app->cursor->scroll >= app->file_list->count - 1) {
                                 return;
                         }
                         app->cursor->scroll += line_increment;
