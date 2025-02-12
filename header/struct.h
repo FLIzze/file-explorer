@@ -36,6 +36,11 @@ enum log_level {
         ERROR,
 };
 
+enum edit_mode {
+        DELETE,
+        RENAME,
+};
+
 struct file_list {
         struct file_entry *file_entry;
         size_t count; 
@@ -44,11 +49,15 @@ struct file_list {
 
 struct file_entry {
         char *name;
-        SDL_Color background_color;
-        SDL_Color foreground_color;
+        char *owner;
+        char *group;
+        short x;
+        short width;
         short is_file;
         time_t last_edit;
-        time_t creation;
+        SDL_Color background_color;
+        SDL_Color foreground_color;
+        unsigned int permissions;
 };
 
 struct text_editor {

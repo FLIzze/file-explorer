@@ -6,7 +6,7 @@
 #include "struct.h"
 
 /* int user_text_input(struct terminal *term, SDL_Renderer *renderer, TTF_Font *font, struct cursor *cursor); */
-int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char *file_name_confirmation);
-int get_user_input(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char *message);
+int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, struct app *app, enum edit_mode edit_mode);
+int get_user_input(SDL_Renderer *renderer, TTF_Font *font, enum edit_mode edit_mode, struct app *app);
 
 #endif

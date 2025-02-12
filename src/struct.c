@@ -3,7 +3,11 @@
 
 void free_app(struct app *app) {
         for (int i = 0; i < app->file_list->count; i++) {
-                free(app->file_list->file_entry[i].name);
+                struct file_entry entry = app->file_list->file_entry[i];
+                app->file_list->file_entry[i].width = 0;
+                free(entry.name);
+                free(entry.owner);
+                free(entry.group);
         }
         free(app->file_list->file_entry);
         free(app->file_list);
@@ -27,7 +31,10 @@ void free_app(struct app *app) {
 
 void free_app_content(struct app *app) {
         for (int i = 0; i < app->file_list->count; i++) {
-                free(app->file_list->file_entry[i].name);
+                struct file_entry entry = app->file_list->file_entry[i];
+                free(entry.name);
+                free(entry.owner);
+                free(entry.group);
         }
 
         app->cursor->line = 0;

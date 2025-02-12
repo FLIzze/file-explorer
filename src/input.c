@@ -2,11 +2,11 @@
 #include "struct.h"
 #include "draw.h"
 
-int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, 
-                        struct app *app, char *file_name_confirmation) {
+int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, struct app *app, enum edit_mode edit_mode) {
         SDL_Event event;
+        char *message;
 
-        draw_user_confirmation(renderer, font, file_name_confirmation);
+        draw_user_confirmation(renderer, font, edit_mode, app);
 
         while (1) {
                 while (SDL_PollEvent(&event)) {
@@ -38,7 +38,7 @@ static void handle_backspace(SDL_Renderer *renderer, TTF_Font *font, struct app 
                 }
 
                 snprintf(full_message, full_message_length, "%s%s", message, user_input);
-                draw_user_confirmation(renderer, font, full_message);
+                /* draw_user_confirmation(renderer, font, edit_mode, app); */
                 free(full_message);
         }
 }
@@ -66,12 +66,24 @@ static void handle_default_key(SDL_Renderer *renderer, TTF_Font *font,
         }
 
         snprintf(full_message, full_message_length, "%s%s", message, app->input->text);
-        draw_user_confirmation(renderer, font, full_message);
+        /* draw_user_confirmation(renderer, font, edit_mode, app); */
         free(full_message);
 }
 
-int get_user_input(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char *message) {
+int get_user_input(SDL_Renderer *renderer, TTF_Font *font, enum edit_mode edit_mode, struct app *app) {
         SDL_Event event;
+        char *message;
+
+        if (edit_mode == RENAME) {
+                message = strdup("RENAME");
+        } else if (edit_mode == DELETE) {
+                message = strdup("DELETE");
+        }
+
+        if (!message) {
+                fprintf(stderr, "Memory allocation failed for message\n");
+                return -1;
+        }
 
         app->input->text = (char *)malloc(1);
         if (!app->input->text) {
@@ -80,7 +92,7 @@ int get_user_input(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char
         }
         app->input->text[0] = '\0';
 
-        draw_user_confirmation(renderer, font, message);
+        draw_user_confirmation(renderer, font, edit_mode, app);
 
         while (1) {
                 while (SDL_PollEvent(&event)) {

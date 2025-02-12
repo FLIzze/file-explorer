@@ -8,7 +8,7 @@
 /* #include <sys/stat.h> */
 
 /* void display_file_content(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term); */
-void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char *file_name_confirmation);
+void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, enum edit_mode, struct app *app);
 void draw_cursor(SDL_Renderer *renderer, struct app *app);
 void draw_path(SDL_Renderer *renderer, TTF_Font *font, struct app *app);
 void draw_lines(SDL_Renderer *renderer, TTF_Font *font, struct app *app);

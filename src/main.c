@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
         TTF_Font *font = initialize_font();
         struct app *app = ini_app();
 
-        read_file(renderer, app);
+        read_file(renderer, app, font);
         draw(renderer, font, app);
 
         SDL_Event e;

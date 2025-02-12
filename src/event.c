@@ -8,11 +8,11 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
         case SDLK_RETURN:
                 if (is_file(app->path)) return;
                 goto_directory(app);
-                read_file(renderer, app);
+                read_file(renderer, app, font);
                 break;
         case SDLK_MINUS:
                 goback_directory(app);
-                read_file(renderer, app);
+                read_file(renderer, app, font);
                 break;
         case SDLK_j:
                 scroll_to(1, 0, app);
@@ -41,17 +41,16 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
                 break;
         case SDLK_a: 
                 if (handle_add(renderer, font, app)) {
-                        read_file(renderer, app);
                 }
                 break; 
         case SDLK_r: 
                 if (handle_rename(renderer, font, app)) {
-                        read_file(renderer, app);
+                        read_file(renderer, app, font);
                 }
                 break;
         case SDLK_x:
                 if (handle_delete(renderer, font, app)) {
-                        read_file(renderer, app);
+                        read_file(renderer, app, font);
                 }
                 break;
         case SDLK_d:

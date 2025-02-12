@@ -127,31 +127,45 @@ void draw_explorer_content(SDL_Renderer *renderer, TTF_Font *font, struct app *a
                 ? MAX_VISIBLE_LINE : app->file_list->count;
         for (int i = app->cursor->scroll; i < end_line + app->cursor->scroll; i++) {
                 struct file_entry entry = app->file_list->file_entry[i];
-                SDL_Color background_color;
-                SDL_Color foreground_color;
+                SDL_Color bg_c;
+                SDL_Color fg_c;
 
                 if (i == app->cursor->line + app->cursor->scroll) {
-                        background_color = { 255, 255, 255, 255};
-                        foreground_color = { 255, 0, 0 ,255 };
+                        bg_c = { 255, 255, 255, 255};
+                        fg_c = { 255, 0, 0 ,255 };
                         SDL_Texture *texture = create_text_texture(renderer, font, ">", 
-                                        foreground_color, background_color);
+                                        fg_c, bg_c);
                         int current_line = (app->cursor->line + LINE_OFFSET) * LINE_HEIGHT;
-                        SDL_Rect location = { 5, current_line, 0, LINE_HEIGHT };
+                        SDL_Rect location = { LINE_WIDTH - 30, current_line, 0, LINE_HEIGHT };
                         SDL_QueryTexture(texture, NULL, NULL, &location.w, &location.h);
                         SDL_RenderCopy(renderer, texture, NULL, &location);
                         SDL_DestroyTexture(texture);
                 } else {
-                        background_color = entry.background_color;
-                        foreground_color = entry.foreground_color;
+                        bg_c = entry.background_color;
+                        fg_c = entry.foreground_color;
                 }
 
-                SDL_Texture *texture = create_text_texture(renderer, font, entry.name, 
-                                foreground_color, background_color);
-                SDL_Rect location = { 50, position_y, 0, LINE_HEIGHT };
+                /* size_t metadata_len = strlen(entry.owner) + strlen(entry.group) + sizeof(entry.last_edit) + */ 
+                /*         sizeof(entry.permissions) + 5; */
+                /* char *full_metadata = (char *)malloc(metadata_len); */
+                /* snprintf(full_metadata, metadata_len, "%s %s %lu %d", */ 
+                /*                 entry.owner, entry.group, entry.last_edit, entry.permissions); */
+
+                /* SDL_Texture *metadata_texture = create_text_texture(renderer, font, full_metadata, */ 
+                /*                 SDL_Color{0, 0, 0, 255} , SDL_Color{255, 255, 255, 255}); */
+                /* SDL_Rect metadata_location = { 0, position_y, 0, LINE_HEIGHT }; */
+                /* SDL_QueryTexture(metadata_texture, NULL, NULL, &metadata_location.w, &metadata_location.h); */
+                /* SDL_RenderCopy(renderer, metadata_texture, NULL, &metadata_location); */
+                /* SDL_DestroyTexture(metadata_texture); */
+
+                SDL_Texture *texture = create_text_texture(renderer, font, entry.name, fg_c, bg_c);
+                SDL_Rect location = { LINE_WIDTH, position_y, 0, LINE_HEIGHT };
                 SDL_QueryTexture(texture, NULL, NULL, &location.w, &location.h);
                 SDL_RenderCopy(renderer, texture, NULL, &location);
                 SDL_DestroyTexture(texture);
                 position_y += LINE_HEIGHT;
+
+                /* free(full_metadata); */
         }
 }
 
@@ -178,44 +192,34 @@ void draw_cursor(SDL_Renderer *renderer, struct app *app) {
         /* SDL_RenderFillRect(renderer, &rect); */
 }
 
-void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, char *file_name_confirmation) {
-        char confirmation[] = "[Y]es [N]o";
+void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, enum edit_mode edit_mode, struct app *app) {
+        char *message;
 
-        SDL_Rect square_area = { (WINDOW_WIDTH - 500) / 2, (WINDOW_HEIGHT - 500) / 2, 500, 500 };
-
-        int confirm_width, confirm_height;
-        if (TTF_SizeText(font, confirmation, &confirm_width, &confirm_height) == -1) {
-                printf("Erorr calculating text size\n");
-                return;
+        if (edit_mode == RENAME) {
+                message = strdup("RENAME YES");
+        } else if (edit_mode == DELETE) {
+                message = strdup("DELETE YES");
         }
 
-        SDL_Color background = { 0, 0, 0, 255 };
-        SDL_Color foreground = { 255, 255, 255, 255 };
-        SDL_Texture *confirm_texture = create_text_texture(renderer, font, confirmation, foreground, background);
-        SDL_Rect confirm_area = { 
-                square_area.x + (square_area.w - confirm_width) / 2, 
-                square_area.y + square_area.h - confirm_height,       
-                confirm_width, 
-                confirm_height 
-        };
+        SDL_Color fg_c = { 0, 0, 0, 255 };
+        SDL_Color bg_c = { 0, 255, 0, 255 };
 
         int file_name_width, file_name_height;
-        if (TTF_SizeText(font, file_name_confirmation, &file_name_width, &file_name_height) == -1) {
+        if (TTF_SizeText(font, message, &file_name_width, &file_name_height) == -1) {
                 printf("Erorr calculating text size\n");
                 return;
         }
 
-        SDL_Texture *file_name_texture = create_text_texture(renderer, font, file_name_confirmation, foreground, background);
-        SDL_Rect file_name_area = { square_area.x, square_area.y, file_name_width, file_name_height };
+        SDL_Texture *file_name_texture = create_text_texture(renderer, font, message, fg_c, bg_c);
+        struct file_entry entry = app->file_list->file_entry[app->cursor->line];
+        SDL_Rect file_name_area = { 
+                entry.x + entry.width,
+                LINE_HEIGHT * (app->cursor->line + LINE_OFFSET), 
+                file_name_width, 
+                file_name_height 
+        };
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderFillRect(renderer, &square_area); 
-        SDL_RenderCopy(renderer, confirm_texture, NULL, &confirm_area);
         SDL_RenderCopy(renderer, file_name_texture, NULL, &file_name_area);
-
-        SDL_DestroyTexture(confirm_texture);
-        SDL_DestroyTexture(file_name_texture);
-
         SDL_RenderPresent(renderer);
 }
 
@@ -223,8 +227,8 @@ void draw(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
         SDL_RenderClear(renderer);
         draw_explorer_content(renderer, font, app);
-        /* draw_lines(renderer, font, app); */
         draw_path(renderer, font, app);
+        /* draw_lines(renderer, font, app); */
         /* draw_cursor(renderer, app); */
         /* draw_log(renderer, font, app); */
 

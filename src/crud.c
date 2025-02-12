@@ -2,16 +2,22 @@
 #include "struct.h"
 #include "stdio.h"
 #include "input.h"
+#include "config.h"
+#include <pwd.h>
+#include <grp.h>
+#include <time.h>
+#include <sys/stat.h>
 #include <dirent.h>
 
-void read_file(SDL_Renderer *renderer, struct app *app) {
+
+void read_file(SDL_Renderer *renderer, struct app *app, TTF_Font *font) {
         free_app_content(app);
         if (is_file(app->path) == 1) {
                 app->mode = TEXT_EDITOR;
                 read_file_content(app);
         } else if (is_file(app->path) == 0) {
                 app->mode = FILE_EXPLORER;
-                read_directory_content(app);
+                read_directory_content(app, font);
         } else {
                 perror("Error determining if path is file or directory");
         }
@@ -45,49 +51,67 @@ void read_file_content(struct app *app) {
         /* fclose(file); */
 }
 
-void read_directory_content(struct app *app) {
-        DIR *d = opendir(app->path);
-        if (!d) {
-                perror("opendir");
-                return;
+void read_directory_content(struct app *app, TTF_Font *font) {
+    DIR *d = opendir(app->path);
+    if (!d) {
+        perror("opendir");
+        return;
+    }
+
+    struct dirent *dir;
+    while ((dir = readdir(d)) != NULL) {
+        if (dir->d_name[0] == '.') continue;
+
+        size_t full_path_len = strlen(app->path) + strlen(dir->d_name) + 2;
+        char *full_path = (char *)malloc(full_path_len);
+        if (!full_path) {
+            fprintf(stderr, "Memory allocation failed for full_path\n");
+            continue;
+        }
+        snprintf(full_path, full_path_len, "%s/%s", app->path, dir->d_name);
+
+        struct stat file_stat;
+        if (stat(full_path, &file_stat) == -1) {
+            perror("stat");
+            free(full_path);
+            continue;
         }
 
-        struct dirent *dir;
-        while ((dir = readdir(d)) != NULL) {
-                if (dir->d_name[0] == '.') continue;
+        struct file_entry entry;
+        entry.is_file = S_ISREG(file_stat.st_mode);
+        entry.foreground_color = entry.is_file ? (SDL_Color){0, 0, 0, 255} : (SDL_Color){0, 0, 255, 255};
+        entry.background_color = (SDL_Color){255, 255, 255, 255};
 
-                size_t full_path_len = strlen(app->path) + strlen(dir->d_name) + 2;
-                char *full_path = (char *)malloc(full_path_len);
-                if (!full_path) {
-                        fprintf(stderr, "Memory allocation failed for full_path\n");
-                        continue;
-                }
-                snprintf(full_path, full_path_len, "%s/%s", app->path, dir->d_name);
+        int width, height;
+        if (TTF_SizeText(font, dir->d_name, &width, &height) == -1) {
+                fprintf(stderr, "Couldnt get Size text\n");
+                continue;
+        }
+        entry.x = LINE_WIDTH;
+        entry.width = width;
 
-                struct file_entry entry;
-                int is_file_result = is_file(full_path);
-                if (is_file_result == -1) {
-                        free(full_path);
-                        continue;
-                }
-
-                entry.is_file = is_file_result;
-                entry.foreground_color = entry.is_file ? (SDL_Color){0, 0, 0, 255} : (SDL_Color){0, 0, 255, 255};
-                entry.background_color = SDL_Color{255, 255, 255, 255};
-                entry.name = strdup(dir->d_name);
-                if (!entry.name) {
-                        fprintf(stderr, "Memory allocation failed for entry name\n");
-                        free(full_path);
-                        continue;
-                }
-
-                struct file_list *file_list = app->file_list;
-                ADD_DA(file_list->file_entry, file_list->count, file_list->capacity, struct file_entry, entry);
-
-                free(full_path);
+        entry.name = strdup(dir->d_name);
+        if (!entry.name) {
+            fprintf(stderr, "Memory allocation failed for entry name\n");
+            free(full_path);
+            continue;
         }
 
-        closedir(d);
+        struct passwd *pw = getpwuid(file_stat.st_uid);
+        struct group *gr = getgrgid(file_stat.st_gid);
+
+        entry.owner = pw ? strdup(pw->pw_name) : NULL;
+        entry.group = gr ? strdup(gr->gr_name) : NULL;
+        entry.last_edit = file_stat.st_mtime;
+        entry.permissions = file_stat.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
+
+        struct file_list *file_list = app->file_list;
+        ADD_DA(file_list->file_entry, file_list->count, file_list->capacity, struct file_entry, entry);
+
+        free(full_path);
+    }
+
+    closedir(d);
 }
 
 static void add_file(char *path) {
@@ -134,14 +158,8 @@ int handle_delete(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         char *new_path = (char *)malloc(new_path_len);
         snprintf(new_path, new_path_len, "%s/%s", app->path, file_name);
 
-        char delete_str[] = "DELETE";
-        size_t file_name_confirmation_len = strlen(file_name) + strlen(delete_str) + 2;
-        char *file_name_confirmation = (char *)malloc(file_name_confirmation_len);
-        snprintf(file_name_confirmation, file_name_confirmation_len, "%s %s ?", delete_str, file_name);
-
-        if (!user_confirmation(renderer, font, app, file_name_confirmation)) {
+        if (!user_confirmation(renderer, font, app, DELETE)) {
                 free(new_path);
-                free(file_name_confirmation);
                 return 0;
         }
 
@@ -152,7 +170,6 @@ int handle_delete(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         }
 
         free(new_path);
-        free(file_name_confirmation);
 
         return 1;
 }
@@ -167,17 +184,9 @@ static int rename_directory(char *previous_path, char *new_path) {
 }
 
 int handle_rename(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
-        char message[] = "RENAME";
         char *file_name = app->file_list->file_entry[app->cursor->line].name;
-        size_t message_len = strlen(message) + strlen(file_name) + 6;
-        char *full_message = (char *)malloc(message_len);
-        if (!full_message) {
-                fprintf(stderr, "Memory allocation failed for full_message\n");
-                return -1;
-        }
-        snprintf(full_message, message_len, "%s %s -> ", message, file_name);
 
-        if (!get_user_input(renderer, font, app, full_message)) {
+        if (!get_user_input(renderer, font, RENAME, app)) {
                 return 0;
         }
 
@@ -199,13 +208,11 @@ int handle_rename(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         snprintf(new_path, new_path_len, "%s/%s", app->path, app->input->text);
 
         if (!rename_directory(previous_path, new_path)) {
-                free(full_message);
                 free(previous_path);
                 free(new_path);
                 return 0;
         }
 
-        free(full_message);
         free(previous_path);
         free(new_path);
 
@@ -219,10 +226,10 @@ int handle_add(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
                 return -1;
         }
 
-        if (!get_user_input(renderer, font, app, buffer)) {
-                free(buffer);
-                return 0;
-        }
+        /* if (!get_user_input(renderer, font, NULL, app)) { */
+        /*         free(buffer); */
+        /*         return 0; */
+        /* } */
         free(buffer);
 
         size_t full_path_len = strlen(app->path) + strlen(app->input->text) + 2;
