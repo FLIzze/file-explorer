@@ -39,6 +39,7 @@ enum log_level {
 enum edit_mode {
         DELETE,
         RENAME,
+        ADD,
 };
 
 struct file_list {
@@ -91,6 +92,7 @@ struct log {
 
 struct user_input {
         char *text;
+        size_t size;
 };
 
 struct text_segment {

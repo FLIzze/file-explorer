@@ -153,9 +153,20 @@ static void delete_file(char *path) {
 }
 
 int handle_delete(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
+        free(app->input->text);
+        app->input->size = 0;
+        app->input->text = strdup("");
+        if (!app->input->text) {
+                fprintf(stderr, "Memory allocation failed for app->input->text\n");
+                return -1;
+        }
         char *file_name = app->file_list->file_entry[app->cursor->line + app->cursor->scroll].name;
         size_t new_path_len = strlen(app->path) + strlen(file_name) + 2; 
         char *new_path = (char *)malloc(new_path_len);
+        if (!new_path) {
+                fprintf(stderr, "Memory allocation failed for new_paht\n");
+                return -1;
+        }
         snprintf(new_path, new_path_len, "%s/%s", app->path, file_name);
 
         if (!user_confirmation(renderer, font, app, DELETE)) {
@@ -220,17 +231,9 @@ int handle_rename(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
 }
 
 int handle_add(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
-        char *buffer = strdup("ADD ");
-        if (!buffer) {
-                fprintf(stderr, "Memory allocation failed for message\n");
-                return -1;
+        if (!get_user_input(renderer, font, ADD, app)) {
+                return 0;
         }
-
-        /* if (!get_user_input(renderer, font, NULL, app)) { */
-        /*         free(buffer); */
-        /*         return 0; */
-        /* } */
-        free(buffer);
 
         size_t full_path_len = strlen(app->path) + strlen(app->input->text) + 2;
         char *full_path = (char *)malloc(full_path_len);

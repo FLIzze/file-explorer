@@ -98,6 +98,7 @@ struct app* ini_app() {
                 fprintf(stderr, "Memory allocation failed for app->input->text\n");
                 goto error_input;
         }
+        app->input->size = 0;
 
         return app;
 

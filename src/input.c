@@ -4,7 +4,7 @@
 
 int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, struct app *app, enum edit_mode edit_mode) {
         SDL_Event event;
-        char *message;
+        char message[] = "";
 
         draw_user_confirmation(renderer, font, edit_mode, app);
 
@@ -24,68 +24,42 @@ int user_confirmation(SDL_Renderer *renderer, TTF_Font *font, struct app *app, e
         }
 }
 
-static void handle_backspace(SDL_Renderer *renderer, TTF_Font *font, struct app *app, char *message) {
-        char *user_input = app->input->text;
-        size_t input_length = strlen(user_input);
-        if (input_length > 0) {
-                user_input[input_length - 1] = '\0'; 
+static void handle_backspace(SDL_Renderer *renderer, TTF_Font *font, struct app *app, enum edit_mode edit_mode) {
+    char *user_input = app->input->text;
+    size_t len = strlen(user_input);
 
-                size_t full_message_length = strlen(user_input) + strlen(message) + 1;
-                char *full_message = (char *)malloc(full_message_length);
-                if (!full_message) {
-                        fprintf(stderr, "Memory allocation failed for full_message\n");
-                        return;
-                }
-
-                snprintf(full_message, full_message_length, "%s%s", message, user_input);
-                /* draw_user_confirmation(renderer, font, edit_mode, app); */
-                free(full_message);
-        }
+    if (len > 0) {
+        user_input[len - 1] = '\0';  
+        
+        app->input->text = (char *)realloc(app->input->text, len);  
+        app->input->size = len - 1;
+        
+        draw_user_confirmation(renderer, font, edit_mode, app);
+    }
 }
 
 static void handle_default_key(SDL_Renderer *renderer, TTF_Font *font, 
-                                struct app *app, char *message, SDL_Event event) {
+                                struct app *app, SDL_Event event, enum edit_mode edit_mode) {
         char to_ascii = (char)event.key.keysym.sym;
 
         size_t new_length = strlen(app->input->text) + 2;
-        char *new_user_input = (char *)realloc(app->input->text, new_length);
-        if (!new_user_input) {
+        app->input->text = (char *)realloc(app->input->text, new_length);
+        if (!app->input->text) {
                 fprintf(stderr, "Memory reallocation failed for user_input\n");
                 return;
         }
 
-        app->input->text = new_user_input;
         app->input->text[new_length - 2] = to_ascii;
         app->input->text[new_length - 1] = '\0';
+        app->input->size = new_length;
 
-        size_t full_message_length = strlen(app->input->text) + strlen(message) + 1;
-        char *full_message = (char *)malloc(full_message_length);
-        if (!full_message) {
-                fprintf(stderr, "Memory allocation failed for full_message\n");
-                return;
-        }
-
-        snprintf(full_message, full_message_length, "%s%s", message, app->input->text);
-        /* draw_user_confirmation(renderer, font, edit_mode, app); */
-        free(full_message);
+        draw_user_confirmation(renderer, font, edit_mode, app);
 }
 
 int get_user_input(SDL_Renderer *renderer, TTF_Font *font, enum edit_mode edit_mode, struct app *app) {
         SDL_Event event;
-        char *message;
 
-        if (edit_mode == RENAME) {
-                message = strdup("RENAME");
-        } else if (edit_mode == DELETE) {
-                message = strdup("DELETE");
-        }
-
-        if (!message) {
-                fprintf(stderr, "Memory allocation failed for message\n");
-                return -1;
-        }
-
-        app->input->text = (char *)malloc(1);
+        app->input->text = (char *)realloc(app->input->text, 1);
         if (!app->input->text) {
                 fprintf(stderr, "Memory allocation failed for app->input->text\n");
                 return -1;
@@ -102,14 +76,14 @@ int get_user_input(SDL_Renderer *renderer, TTF_Font *font, enum edit_mode edit_m
                         } else if (event.type == SDL_KEYDOWN) {
                                 switch (event.key.keysym.sym) {
                                 case SDLK_BACKSPACE: 
-                                        handle_backspace(renderer, font, app, message);  
+                                        handle_backspace(renderer, font, app, edit_mode);  
                                         break; 
                                 case SDLK_RETURN:
                                         return 1;
                                 case SDLK_ESCAPE:
                                         return 0; 
                                 default: 
-                                        handle_default_key(renderer, font, app, message, event);
+                                        handle_default_key(renderer, font, app, event, edit_mode);
                                         break; 
                                 }
                         }

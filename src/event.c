@@ -41,6 +41,7 @@ void handle_keyboard(int *quit, SDL_Event e, struct app *app, SDL_Renderer *rend
                 break;
         case SDLK_a: 
                 if (handle_add(renderer, font, app)) {
+                        read_file(renderer, app, font);
                 }
                 break; 
         case SDLK_r: 

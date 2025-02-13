@@ -1,6 +1,5 @@
 #include "draw.h"
 #include "config.h"
-/* #include "stdio.h" */
 
 /* void display_file_content(SDL_Renderer *renderer, TTF_Font *font, struct terminal *term) { */
 /*         if (!renderer || !font || !term || !term->lines) { */
@@ -180,47 +179,71 @@ void draw_path(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
         SDL_DestroyTexture(text_texture);
 }
 
-void draw_cursor(SDL_Renderer *renderer, struct app *app) {
-        /* struct cursor *cursor = app->cursor; */
-
-        /* SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); */
-        /* SDL_SetRenderDrawColor(renderer, cursor->color.r, cursor->color.g, cursor->color.b, cursor->color.a); */
-        /* SDL_Rect rect = { 0 + cursor->column * FONT_SIZE, */ 
-        /*         (cursor->line + LINE_OFFSET) * LINE_HEIGHT, */ 
-        /*         15, */ 
-        /*         LINE_HEIGHT }; */ 
-        /* SDL_RenderFillRect(renderer, &rect); */
-}
-
-void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, enum edit_mode edit_mode, struct app *app) {
+void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font, 
+                                enum edit_mode edit_mode, struct app *app) {
         char *message;
+        char *confirmation;
+        int position_y = LINE_HEIGHT * (app->cursor->line + LINE_OFFSET);
+
+        SDL_Color fg_c = { 255, 255, 255, 255 }; 
+        SDL_Color bg_c;
 
         if (edit_mode == RENAME) {
-                message = strdup("RENAME YES");
+                bg_c = { 220, 220, 10, 255 }; 
+                confirmation = strdup("    [Y]es [N]o  >  ");
+                message = strdup(" RENAME");
         } else if (edit_mode == DELETE) {
-                message = strdup("DELETE YES");
+                bg_c = { 255, 0, 0, 255 }; 
+                confirmation = strdup("    [Y]es [N]o");
+                message = strdup(" DELETE");
+        } else if (edit_mode == ADD) {
+                bg_c = { 0, 255, 0, 255 }; 
+                confirmation = strdup("    [Y]es [N]o  >  ");
+                message = strdup(" ADD");
         }
 
-        SDL_Color fg_c = { 0, 0, 0, 255 };
-        SDL_Color bg_c = { 0, 255, 0, 255 };
+        if (!confirmation || !message) {
+                fprintf(stderr, "Error allocation memory for confirmation or message\n");
+                return;
+        }
+
+        size_t full_message_len = strlen(message) + strlen(confirmation) + strlen(app->input->text) + 3;
+        char* full_message = (char *)malloc(full_message_len);
+        if (!full_message) {
+                fprintf(stderr, "Memory reallocation failed for full_message\n");
+                return;
+        }
+
+        snprintf(full_message, full_message_len, "%s%s%s", message, confirmation, app->input->text);
 
         int file_name_width, file_name_height;
-        if (TTF_SizeText(font, message, &file_name_width, &file_name_height) == -1) {
+        if (TTF_SizeText(font, full_message, &file_name_width, &file_name_height) == -1) {
                 printf("Erorr calculating text size\n");
                 return;
         }
 
-        SDL_Texture *file_name_texture = create_text_texture(renderer, font, message, fg_c, bg_c);
+        SDL_Rect square_area = { 
+                0,
+                position_y,
+                WINDOW_WIDTH, 
+                LINE_HEIGHT 
+        };
+
+        SDL_SetRenderDrawColor(renderer, bg_c.r, bg_c.g, bg_c.b, bg_c.a);
+        SDL_RenderFillRect(renderer, &square_area); 
+
+        SDL_Texture *file_name_texture = create_text_texture(renderer, font, full_message, fg_c, bg_c);
         struct file_entry entry = app->file_list->file_entry[app->cursor->line];
         SDL_Rect file_name_area = { 
-                entry.x + entry.width,
+                entry.x,
                 LINE_HEIGHT * (app->cursor->line + LINE_OFFSET), 
-                file_name_width, 
+                file_name_width,
                 file_name_height 
         };
 
         SDL_RenderCopy(renderer, file_name_texture, NULL, &file_name_area);
         SDL_RenderPresent(renderer);
+        free(full_message);
 }
 
 void draw(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
