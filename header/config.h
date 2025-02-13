@@ -20,4 +20,9 @@
 #define LINES_HEIGHT (WINDOW_HEIGHT - (LINE_HEIGHT * LINE_OFFSET))
 #define MAX_VISIBLE_LINE ((WINDOW_HEIGHT - (LINE_HEIGHT * LINE_OFFSET)) / LINE_HEIGHT) - 4
 
+#define BG_COLOR ((SDL_Color){ 30, 30, 30, 255 })
+#define FILE_COLOR ((SDL_Color){ 255, 255, 255, 255 })
+#define DIRECTORY_COLOR ((SDL_Color){ 0, 0, 255, 255 })
+#define SELECTED_COLOR ((SDL_Color){ 255, 0, 0, 255 })
+
 #endif

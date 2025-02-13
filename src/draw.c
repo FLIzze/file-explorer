@@ -130,8 +130,8 @@ void draw_explorer_content(SDL_Renderer *renderer, TTF_Font *font, struct app *a
                 SDL_Color fg_c;
 
                 if (i == app->cursor->line + app->cursor->scroll) {
-                        bg_c = { 255, 255, 255, 255};
-                        fg_c = { 255, 0, 0 ,255 };
+                        bg_c = BG_COLOR;
+                        fg_c = SELECTED_COLOR;
                         SDL_Texture *texture = create_text_texture(renderer, font, ">", 
                                         fg_c, bg_c);
                         int current_line = (app->cursor->line + LINE_OFFSET) * LINE_HEIGHT;
@@ -157,7 +157,7 @@ void draw_explorer_content(SDL_Renderer *renderer, TTF_Font *font, struct app *a
                 /* SDL_RenderCopy(renderer, metadata_texture, NULL, &metadata_location); */
                 /* SDL_DestroyTexture(metadata_texture); */
 
-                SDL_Texture *texture = create_text_texture(renderer, font, entry.name, fg_c, bg_c);
+                SDL_Texture *texture = create_text_texture(renderer, font, entry.name, fg_c, BG_COLOR);
                 SDL_Rect location = { LINE_WIDTH, position_y, 0, LINE_HEIGHT };
                 SDL_QueryTexture(texture, NULL, NULL, &location.w, &location.h);
                 SDL_RenderCopy(renderer, texture, NULL, &location);
@@ -169,8 +169,8 @@ void draw_explorer_content(SDL_Renderer *renderer, TTF_Font *font, struct app *a
 }
 
 void draw_path(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
-        SDL_Color text_color = { 0, 0, 255 }; 
-        SDL_Color background_color = { 255, 255, 255 }; 
+        SDL_Color text_color = DIRECTORY_COLOR;
+        SDL_Color background_color = BG_COLOR;
         SDL_Texture *text_texture = create_text_texture(renderer, font, app->path, text_color, background_color);
         SDL_Rect text_location = { 0, 0, WINDOW_WIDTH, LINE_HEIGHT };
 
@@ -191,11 +191,11 @@ void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font,
         if (edit_mode == RENAME) {
                 bg_c = { 220, 220, 10, 255 }; 
                 confirmation = strdup("    [Y]es [N]o  >  ");
-                message = strdup(" RENAME");
+                message = strdup("RENAME");
         } else if (edit_mode == DELETE) {
                 bg_c = { 255, 0, 0, 255 }; 
                 confirmation = strdup("    [Y]es [N]o");
-                message = strdup(" DELETE");
+                message = strdup("DELETE");
         } else if (edit_mode == ADD) {
                 bg_c = { 0, 255, 0, 255 }; 
                 confirmation = strdup("    [Y]es [N]o  >  ");
@@ -247,7 +247,7 @@ void draw_user_confirmation(SDL_Renderer *renderer, TTF_Font *font,
 }
 
 void draw(SDL_Renderer *renderer, TTF_Font *font, struct app *app) {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+        SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255); 
         SDL_RenderClear(renderer);
         draw_explorer_content(renderer, font, app);
         draw_path(renderer, font, app);

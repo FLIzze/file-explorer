@@ -52,66 +52,66 @@ void read_file_content(struct app *app) {
 }
 
 void read_directory_content(struct app *app, TTF_Font *font) {
-    DIR *d = opendir(app->path);
-    if (!d) {
-        perror("opendir");
-        return;
-    }
-
-    struct dirent *dir;
-    while ((dir = readdir(d)) != NULL) {
-        if (dir->d_name[0] == '.') continue;
-
-        size_t full_path_len = strlen(app->path) + strlen(dir->d_name) + 2;
-        char *full_path = (char *)malloc(full_path_len);
-        if (!full_path) {
-            fprintf(stderr, "Memory allocation failed for full_path\n");
-            continue;
-        }
-        snprintf(full_path, full_path_len, "%s/%s", app->path, dir->d_name);
-
-        struct stat file_stat;
-        if (stat(full_path, &file_stat) == -1) {
-            perror("stat");
-            free(full_path);
-            continue;
+        DIR *d = opendir(app->path);
+        if (!d) {
+                perror("opendir");
+                return;
         }
 
-        struct file_entry entry;
-        entry.is_file = S_ISREG(file_stat.st_mode);
-        entry.foreground_color = entry.is_file ? (SDL_Color){0, 0, 0, 255} : (SDL_Color){0, 0, 255, 255};
-        entry.background_color = (SDL_Color){255, 255, 255, 255};
+        struct dirent *dir;
+        while ((dir = readdir(d)) != NULL) {
+                if (dir->d_name[0] == '.') continue;
 
-        int width, height;
-        if (TTF_SizeText(font, dir->d_name, &width, &height) == -1) {
-                fprintf(stderr, "Couldnt get Size text\n");
-                continue;
+                size_t full_path_len = strlen(app->path) + strlen(dir->d_name) + 2;
+                char *full_path = (char *)malloc(full_path_len);
+                if (!full_path) {
+                        fprintf(stderr, "Memory allocation failed for full_path\n");
+                        continue;
+                }
+                snprintf(full_path, full_path_len, "%s/%s", app->path, dir->d_name);
+
+                struct stat file_stat;
+                if (stat(full_path, &file_stat) == -1) {
+                        perror("stat");
+                        free(full_path);
+                        continue;
+                }
+
+                struct file_entry entry;
+                entry.is_file = S_ISREG(file_stat.st_mode);
+                entry.foreground_color = entry.is_file ? FILE_COLOR : DIRECTORY_COLOR;
+                entry.background_color = BG_COLOR;
+
+                int width, height;
+                if (TTF_SizeText(font, dir->d_name, &width, &height) == -1) {
+                        fprintf(stderr, "Couldnt get Size text\n");
+                        continue;
+                }
+                entry.x = LINE_WIDTH;
+                entry.width = width;
+
+                entry.name = strdup(dir->d_name);
+                if (!entry.name) {
+                        fprintf(stderr, "Memory allocation failed for entry name\n");
+                        free(full_path);
+                        continue;
+                }
+
+                struct passwd *pw = getpwuid(file_stat.st_uid);
+                struct group *gr = getgrgid(file_stat.st_gid);
+
+                entry.owner = pw ? strdup(pw->pw_name) : NULL;
+                entry.group = gr ? strdup(gr->gr_name) : NULL;
+                entry.last_edit = file_stat.st_mtime;
+                entry.permissions = file_stat.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
+
+                struct file_list *file_list = app->file_list;
+                ADD_DA(file_list->file_entry, file_list->count, file_list->capacity, struct file_entry, entry);
+
+                free(full_path);
         }
-        entry.x = LINE_WIDTH;
-        entry.width = width;
 
-        entry.name = strdup(dir->d_name);
-        if (!entry.name) {
-            fprintf(stderr, "Memory allocation failed for entry name\n");
-            free(full_path);
-            continue;
-        }
-
-        struct passwd *pw = getpwuid(file_stat.st_uid);
-        struct group *gr = getgrgid(file_stat.st_gid);
-
-        entry.owner = pw ? strdup(pw->pw_name) : NULL;
-        entry.group = gr ? strdup(gr->gr_name) : NULL;
-        entry.last_edit = file_stat.st_mtime;
-        entry.permissions = file_stat.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
-
-        struct file_list *file_list = app->file_list;
-        ADD_DA(file_list->file_entry, file_list->count, file_list->capacity, struct file_entry, entry);
-
-        free(full_path);
-    }
-
-    closedir(d);
+        closedir(d);
 }
 
 static void add_file(char *path) {
